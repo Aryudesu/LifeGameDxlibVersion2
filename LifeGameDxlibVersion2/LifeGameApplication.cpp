@@ -6,9 +6,48 @@
 #include "LifeFile.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <string>
 #include <thread>
+#include <utility>
+
+namespace {
+using CellOffset = std::pair<int, int>;
+
+constexpr std::array<CellOffset, 5> GliderPattern = {{
+    {0, -1},
+    {1, 0},
+    {-1, 1},
+    {0, 1},
+    {1, 1}
+}};
+
+constexpr std::array<CellOffset, 3> BlinkerPattern = {{
+    {-1, 0},
+    {0, 0},
+    {1, 0}
+}};
+
+constexpr std::array<CellOffset, 9> LightweightSpaceshipPattern = {{
+    {-1, -1},
+    {2, -1},
+    {-2, 0},
+    {-2, 1},
+    {2, 1},
+    {-2, 2},
+    {-1, 2},
+    {0, 2},
+    {1, 2}
+}};
+
+template <std::size_t N>
+void placePattern(LifeBoard& board, int anchorX, int anchorY, const std::array<CellOffset, N>& pattern) {
+    for (const auto& [offsetX, offsetY] : pattern) {
+        board.setAlive(anchorX + offsetX, anchorY + offsetY, true);
+    }
+}
+}
 
 LifeGameApplication::LifeGameApplication()
     : board_(AppConfig::BoardWidth, AppConfig::BoardHeight),
@@ -111,6 +150,10 @@ void LifeGameApplication::update(const InputFrame& input, double elapsedSeconds)
         showGrid_ = !showGrid_;
     }
 
+    if (input.selectNextPattern) {
+        selectNextPattern();
+    }
+
     if (input.speedUp) {
         changeSimulationSpeed(1);
     }
@@ -197,13 +240,14 @@ void LifeGameApplication::draw() const {
             AppConfig::HudColorR,
             AppConfig::HudColorG,
             AppConfig::HudColorB),
-        "Generation: %llu   FPS: %.1f   Speed: %d gen/s   Random: %.0f%%   Alive: %llu (%.2f%%)%s",
+        "Generation: %llu   FPS: %.1f   Speed: %d gen/s   Random: %.0f%%   Alive: %llu (%.2f%%)   Pattern: %s%s",
         static_cast<unsigned long long>(generation_),
         fps_,
         currentSimulationSpeed(),
         currentRandomAliveProbability() * 100.0,
         static_cast<unsigned long long>(aliveCells),
         alivePercentage,
+        currentPatternName(),
         paused_ ? "   [Paused]" : "");
 
     ScreenFlip();
@@ -256,13 +300,58 @@ void LifeGameApplication::editBoardWithMouse(const InputFrame& input) {
 
     const auto [boardX, boardY] = camera_.screenToBoard(input.mouseX, input.mouseY);
 
-    if (input.mouseLeftDown) {
-        board_.setAlive(boardX, boardY, true);
+    if (selectedPattern_ == PlacementPattern::Cell) {
+        if (input.mouseLeftDown) {
+            board_.setAlive(boardX, boardY, true);
+        }
+    } else if (input.mouseLeftPressed) {
+        placeSelectedPattern(boardX, boardY);
     }
 
     if (input.mouseRightDown) {
         board_.setAlive(boardX, boardY, false);
     }
+}
+
+void LifeGameApplication::placeSelectedPattern(int boardX, int boardY) {
+    switch (selectedPattern_) {
+    case PlacementPattern::Glider:
+        placePattern(board_, boardX, boardY, GliderPattern);
+        break;
+    case PlacementPattern::Blinker:
+        placePattern(board_, boardX, boardY, BlinkerPattern);
+        break;
+    case PlacementPattern::LightweightSpaceship:
+        placePattern(board_, boardX, boardY, LightweightSpaceshipPattern);
+        break;
+    case PlacementPattern::Cell:
+    case PlacementPattern::Count:
+        break;
+    }
+}
+
+void LifeGameApplication::selectNextPattern() noexcept {
+    const std::size_t patternCount = static_cast<std::size_t>(PlacementPattern::Count);
+    const std::size_t next =
+        (static_cast<std::size_t>(selectedPattern_) + 1) % patternCount;
+    selectedPattern_ = static_cast<PlacementPattern>(next);
+}
+
+const char* LifeGameApplication::currentPatternName() const noexcept {
+    switch (selectedPattern_) {
+    case PlacementPattern::Cell:
+        return "Cell";
+    case PlacementPattern::Glider:
+        return "Glider";
+    case PlacementPattern::Blinker:
+        return "Blinker";
+    case PlacementPattern::LightweightSpaceship:
+        return "LWSS";
+    case PlacementPattern::Count:
+        return "Cell";
+    }
+
+    return "Cell";
 }
 
 void LifeGameApplication::advanceGeneration() {
