@@ -56,9 +56,21 @@ InputFrame InputController::update() {
         (CheckHitKey(KEY_INPUT_UP) != 0 ? 1 : 0);
 
     GetMousePoint(&input.mouseX, &input.mouseY);
+    if (mousePositionInitialized_) {
+        input.mouseDeltaX = input.mouseX - previousMouseX_;
+        input.mouseDeltaY = input.mouseY - previousMouseY_;
+    } else {
+        mousePositionInitialized_ = true;
+    }
+    previousMouseX_ = input.mouseX;
+    previousMouseY_ = input.mouseY;
+
+    input.mouseWheel = GetMouseWheelRotVol();
+
     const int mouseInput = GetMouseInput();
     input.mouseLeftDown = (mouseInput & MOUSE_INPUT_LEFT) != 0;
     input.mouseRightDown = (mouseInput & MOUSE_INPUT_RIGHT) != 0;
+    input.mouseMiddleDown = (mouseInput & MOUSE_INPUT_MIDDLE) != 0;
 
     return input;
 }
