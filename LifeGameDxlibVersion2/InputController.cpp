@@ -22,6 +22,16 @@ InputFrame InputController::update() {
     const bool rIsDown = CheckHitKey(KEY_INPUT_R) != 0;
     input.randomizeBoard = pressedThisFrame(rIsDown, rWasDown_);
 
+    if (CheckHitKey(KEY_INPUT_1) != 0) {
+        input.randomDensityIndex = 0;
+    } else if (CheckHitKey(KEY_INPUT_2) != 0) {
+        input.randomDensityIndex = 1;
+    } else if (CheckHitKey(KEY_INPUT_3) != 0) {
+        input.randomDensityIndex = 2;
+    } else if (CheckHitKey(KEY_INPUT_4) != 0) {
+        input.randomDensityIndex = 3;
+    }
+
     const bool controlIsDown =
         CheckHitKey(KEY_INPUT_LCONTROL) != 0 ||
         CheckHitKey(KEY_INPUT_RCONTROL) != 0;
