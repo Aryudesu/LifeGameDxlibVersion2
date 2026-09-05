@@ -19,6 +19,9 @@ InputFrame InputController::update() {
     const bool deleteIsDown = CheckHitKey(KEY_INPUT_DELETE) != 0;
     input.clearBoard = pressedThisFrame(deleteIsDown, deleteWasDown_);
 
+    const bool rIsDown = CheckHitKey(KEY_INPUT_R) != 0;
+    input.randomizeBoard = pressedThisFrame(rIsDown, rWasDown_);
+
     const bool controlIsDown =
         CheckHitKey(KEY_INPUT_LCONTROL) != 0 ||
         CheckHitKey(KEY_INPUT_RCONTROL) != 0;
