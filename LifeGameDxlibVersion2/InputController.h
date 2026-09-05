@@ -9,6 +9,8 @@ struct InputFrame {
     bool toggleGrid = false;
     bool zoomIn = false;
     bool zoomOut = false;
+    bool speedUp = false;
+    bool speedDown = false;
 
     int cameraDeltaX = 0;
     int cameraDeltaY = 0;
@@ -36,6 +38,8 @@ private:
     bool gWasDown_ = false;
     bool plusWasDown_ = false;
     bool minusWasDown_ = false;
+    bool pageUpWasDown_ = false;
+    bool pageDownWasDown_ = false;
     bool mousePositionInitialized_ = false;
     int previousMouseX_ = 0;
     int previousMouseY_ = 0;
