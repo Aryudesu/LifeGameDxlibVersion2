@@ -1,5 +1,6 @@
 #include "DxLib.h"
 #include "AppConfig.h"
+#include "InputController.h"
 #include "LifeBoard.h"
 #include "LifeFile.h"
 #include "LifeRenderer.h"
@@ -77,47 +78,41 @@ void clampCamera(const LifeBoard& board, int cellSize, int& cameraX, int& camera
     cameraY = std::clamp(cameraY, 0, maxCameraY);
 }
 
-void updateCamera(const LifeBoard& board, int cellSize, int& cameraX, int& cameraY) {
-    if (CheckHitKey(KEY_INPUT_LEFT) != 0) {
-        cameraX -= AppConfig::CameraMoveSpeed;
-    }
-    if (CheckHitKey(KEY_INPUT_RIGHT) != 0) {
-        cameraX += AppConfig::CameraMoveSpeed;
-    }
-    if (CheckHitKey(KEY_INPUT_UP) != 0) {
-        cameraY -= AppConfig::CameraMoveSpeed;
-    }
-    if (CheckHitKey(KEY_INPUT_DOWN) != 0) {
-        cameraY += AppConfig::CameraMoveSpeed;
-    }
-
+void updateCamera(
+    const LifeBoard& board,
+    const InputFrame& input,
+    int cellSize,
+    int& cameraX,
+    int& cameraY) {
+    cameraX += input.cameraDeltaX * AppConfig::CameraMoveSpeed;
+    cameraY += input.cameraDeltaY * AppConfig::CameraMoveSpeed;
     clampCamera(board, cellSize, cameraX, cameraY);
 }
 
-void editBoardWithMouse(LifeBoard& board, int cameraX, int cameraY, int cellSize) {
-    int mouseX = 0;
-    int mouseY = 0;
-    GetMousePoint(&mouseX, &mouseY);
-
-    if (mouseX < 0 || mouseY < 0 ||
-        mouseX >= AppConfig::ScreenWidth || mouseY >= AppConfig::ScreenHeight) {
+void editBoardWithMouse(
+    LifeBoard& board,
+    const InputFrame& input,
+    int cameraX,
+    int cameraY,
+    int cellSize) {
+    if (input.mouseX < 0 || input.mouseY < 0 ||
+        input.mouseX >= AppConfig::ScreenWidth ||
+        input.mouseY >= AppConfig::ScreenHeight) {
         return;
     }
 
-    const int boardX = cameraX + mouseX / cellSize;
-    const int boardY = cameraY + mouseY / cellSize;
+    const int boardX = cameraX + input.mouseX / cellSize;
+    const int boardY = cameraY + input.mouseY / cellSize;
     if (boardX < 0 || boardY < 0 ||
         boardX >= board.width() || boardY >= board.height()) {
         return;
     }
 
-    const int mouseInput = GetMouseInput();
-
-    if ((mouseInput & MOUSE_INPUT_LEFT) != 0) {
+    if (input.mouseLeftDown) {
         board.setAlive(boardX, boardY, true);
     }
 
-    if ((mouseInput & MOUSE_INPUT_RIGHT) != 0) {
+    if (input.mouseRightDown) {
         board.setAlive(boardX, boardY, false);
     }
 }
@@ -141,44 +136,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     LifeBoard board(AppConfig::BoardWidth, AppConfig::BoardHeight);
     LifeRenderer renderer(AppConfig::ScreenWidth, AppConfig::ScreenHeight);
+    InputController inputController;
     board.randomize();
 
     bool paused = false;
-    bool enterWasDown = false;
-    bool spaceWasDown = false;
-    bool plusWasDown = false;
-    bool minusWasDown = false;
-    bool gWasDown = false;
-    bool deleteWasDown = false;
-    bool saveWasDown = false;
-    bool loadWasDown = false;
     bool showGrid = false;
     int cameraX = 0;
     int cameraY = 0;
     int cellSize = AppConfig::MinCellSize;
 
     while (ProcessMessage() == 0) {
-        const bool enterIsDown = CheckHitKey(KEY_INPUT_RETURN) != 0;
-        if (enterIsDown && !enterWasDown) {
+        const InputFrame input = inputController.update();
+
+        if (input.togglePause) {
             paused = !paused;
             setWindowTitle(paused);
         }
-        enterWasDown = enterIsDown;
 
-        const bool deleteIsDown = CheckHitKey(KEY_INPUT_DELETE) != 0;
-        if (deleteIsDown && !deleteWasDown) {
+        if (input.clearBoard) {
             board.clear();
             paused = true;
             setWindowTitle(paused);
         }
-        deleteWasDown = deleteIsDown;
 
-        const bool controlIsDown =
-            CheckHitKey(KEY_INPUT_LCONTROL) != 0 ||
-            CheckHitKey(KEY_INPUT_RCONTROL) != 0;
-
-        const bool saveIsDown = controlIsDown && CheckHitKey(KEY_INPUT_S) != 0;
-        if (saveIsDown && !saveWasDown) {
+        if (input.save) {
             std::string path;
             if (chooseSavePath(path)) {
                 std::string errorMessage;
@@ -187,10 +168,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 }
             }
         }
-        saveWasDown = saveIsDown;
 
-        const bool loadIsDown = controlIsDown && CheckHitKey(KEY_INPUT_L) != 0;
-        if (loadIsDown && !loadWasDown) {
+        if (input.load) {
             std::string path;
             if (chooseLoadPath(path)) {
                 std::string errorMessage;
@@ -202,44 +181,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 }
             }
         }
-        loadWasDown = loadIsDown;
 
-        const bool spaceIsDown = CheckHitKey(KEY_INPUT_SPACE) != 0;
-        const bool singleStepRequested = paused && spaceIsDown && !spaceWasDown;
-        spaceWasDown = spaceIsDown;
-
-        const bool gIsDown = CheckHitKey(KEY_INPUT_G) != 0;
-        if (gIsDown && !gWasDown) {
+        if (input.toggleGrid) {
             showGrid = !showGrid;
         }
-        gWasDown = gIsDown;
 
-        const bool shiftIsDown =
-            CheckHitKey(KEY_INPUT_LSHIFT) != 0 ||
-            CheckHitKey(KEY_INPUT_RSHIFT) != 0;
-        const bool plusIsDown =
-            CheckHitKey(KEY_INPUT_ADD) != 0 ||
-            (shiftIsDown && CheckHitKey(KEY_INPUT_SEMICOLON) != 0);
-        if (plusIsDown && !plusWasDown && cellSize < AppConfig::MaxCellSize) {
+        if (input.zoomIn && cellSize < AppConfig::MaxCellSize) {
             cellSize *= 2;
             clampCamera(board, cellSize, cameraX, cameraY);
         }
-        plusWasDown = plusIsDown;
 
-        const bool minusIsDown =
-            CheckHitKey(KEY_INPUT_SUBTRACT) != 0 ||
-            CheckHitKey(KEY_INPUT_MINUS) != 0;
-        if (minusIsDown && !minusWasDown && cellSize > AppConfig::MinCellSize) {
+        if (input.zoomOut && cellSize > AppConfig::MinCellSize) {
             cellSize /= 2;
             clampCamera(board, cellSize, cameraX, cameraY);
         }
-        minusWasDown = minusIsDown;
 
-        updateCamera(board, cellSize, cameraX, cameraY);
+        updateCamera(board, input, cellSize, cameraX, cameraY);
 
         if (paused) {
-            editBoardWithMouse(board, cameraX, cameraY, cellSize);
-            if (singleStepRequested) {
+            editBoardWithMouse(board, input, cameraX, cameraY, cellSize);
+            if (input.singleStep) {
                 board.step();
             }
         } else {
