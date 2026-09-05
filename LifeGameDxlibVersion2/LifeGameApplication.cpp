@@ -60,9 +60,35 @@ void LifeGameApplication::update(const InputFrame& input) {
         camera_.zoomOut(AppConfig::MinCellSize);
     }
 
+    if (input.mouseWheel > 0) {
+        for (int i = 0; i < input.mouseWheel; ++i) {
+            if (!camera_.zoomInAt(
+                    input.mouseX,
+                    input.mouseY,
+                    AppConfig::MaxCellSize)) {
+                break;
+            }
+        }
+    } else if (input.mouseWheel < 0) {
+        for (int i = 0; i < -input.mouseWheel; ++i) {
+            if (!camera_.zoomOutAt(
+                    input.mouseX,
+                    input.mouseY,
+                    AppConfig::MinCellSize)) {
+                break;
+            }
+        }
+    }
+
     camera_.move(
         input.cameraDeltaX * AppConfig::CameraMoveSpeed,
         input.cameraDeltaY * AppConfig::CameraMoveSpeed);
+
+    if (input.mouseMiddleDown) {
+        camera_.panByPixels(input.mouseDeltaX, input.mouseDeltaY);
+    } else {
+        camera_.endPan();
+    }
 
     if (paused_) {
         editBoardWithMouse(input);

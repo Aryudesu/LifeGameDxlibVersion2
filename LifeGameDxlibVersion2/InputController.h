@@ -15,8 +15,12 @@ struct InputFrame {
 
     int mouseX = 0;
     int mouseY = 0;
+    int mouseDeltaX = 0;
+    int mouseDeltaY = 0;
+    int mouseWheel = 0;
     bool mouseLeftDown = false;
     bool mouseRightDown = false;
+    bool mouseMiddleDown = false;
 };
 
 class InputController {
@@ -32,4 +36,7 @@ private:
     bool gWasDown_ = false;
     bool plusWasDown_ = false;
     bool minusWasDown_ = false;
+    bool mousePositionInitialized_ = false;
+    int previousMouseX_ = 0;
+    int previousMouseY_ = 0;
 };
