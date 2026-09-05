@@ -26,8 +26,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     LifeRenderer renderer(ScreenWidth, ScreenHeight);
     board.randomize();
 
+    bool paused = false;
+    bool enterWasDown = false;
+
     while (ProcessMessage() == 0) {
-        board.step();
+        const bool enterIsDown = CheckHitKey(KEY_INPUT_RETURN) != 0;
+        if (enterIsDown && !enterWasDown) {
+            paused = !paused;
+            SetMainWindowText(paused
+                ? "LifeGameDxlibVersion2 - Paused"
+                : "LifeGameDxlibVersion2");
+        }
+        enterWasDown = enterIsDown;
+
+        if (!paused) {
+            board.step();
+        }
 
         ClearDrawScreen();
         renderer.draw(board);
