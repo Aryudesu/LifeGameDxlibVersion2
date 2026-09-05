@@ -91,6 +91,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     bool spaceWasDown = false;
     bool plusWasDown = false;
     bool minusWasDown = false;
+    bool gWasDown = false;
+    bool showGrid = false;
     int cameraX = 0;
     int cameraY = 0;
     int cellSize = 1;
@@ -108,6 +110,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         const bool spaceIsDown = CheckHitKey(KEY_INPUT_SPACE) != 0;
         const bool singleStepRequested = paused && spaceIsDown && !spaceWasDown;
         spaceWasDown = spaceIsDown;
+
+        const bool gIsDown = CheckHitKey(KEY_INPUT_G) != 0;
+        if (gIsDown && !gWasDown) {
+            showGrid = !showGrid;
+        }
+        gWasDown = gIsDown;
 
         const bool shiftIsDown =
             CheckHitKey(KEY_INPUT_LSHIFT) != 0 ||
@@ -142,7 +150,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         }
 
         ClearDrawScreen();
-        renderer.draw(board, cameraX, cameraY, cellSize);
+        renderer.draw(board, cameraX, cameraY, cellSize, showGrid);
         ScreenFlip();
     }
 

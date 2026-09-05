@@ -8,10 +8,16 @@
 LifeRenderer::LifeRenderer(int screenWidth, int screenHeight)
     : screenWidth_(screenWidth),
       screenHeight_(screenHeight),
-      aliveColor_(GetColor(0, 255, 0)) {
+      aliveColor_(GetColor(0, 255, 0)),
+      gridColor_(GetColor(64, 64, 64)) {
 }
 
-void LifeRenderer::draw(const LifeBoard& board, int cameraX, int cameraY, int cellSize) const {
+void LifeRenderer::draw(
+    const LifeBoard& board,
+    int cameraX,
+    int cameraY,
+    int cellSize,
+    bool showGrid) const {
     const int visibleColumns = (screenWidth_ + cellSize - 1) / cellSize;
     const int visibleRows = (screenHeight_ + cellSize - 1) / cellSize;
     const int endX = std::min(board.width(), cameraX + visibleColumns);
@@ -37,5 +43,19 @@ void LifeRenderer::draw(const LifeBoard& board, int cameraX, int cameraY, int ce
                     TRUE);
             }
         }
+    }
+
+    if (!showGrid || cellSize == 1) {
+        return;
+    }
+
+    const int drawWidth = std::min(screenWidth_, (endX - cameraX) * cellSize);
+    const int drawHeight = std::min(screenHeight_, (endY - cameraY) * cellSize);
+
+    for (int x = 0; x <= drawWidth; x += cellSize) {
+        DrawLine(x, 0, x, drawHeight, gridColor_);
+    }
+    for (int y = 0; y <= drawHeight; y += cellSize) {
+        DrawLine(0, y, drawWidth, y, gridColor_);
     }
 }
