@@ -183,6 +183,13 @@ void LifeGameApplication::draw() const {
     ClearDrawScreen();
     renderer_.draw(board_, camera_, showGrid_);
 
+    const std::uint64_t aliveCells = board_.aliveCellCount();
+    const std::uint64_t totalCells =
+        static_cast<std::uint64_t>(board_.width()) * static_cast<std::uint64_t>(board_.height());
+    const double alivePercentage = totalCells == 0
+        ? 0.0
+        : static_cast<double>(aliveCells) * 100.0 / static_cast<double>(totalCells);
+
     DrawFormatString(
         AppConfig::HudX,
         AppConfig::HudY,
@@ -190,11 +197,13 @@ void LifeGameApplication::draw() const {
             AppConfig::HudColorR,
             AppConfig::HudColorG,
             AppConfig::HudColorB),
-        "Generation: %llu   FPS: %.1f   Speed: %d gen/s   Density: %.0f%%%s",
+        "Generation: %llu   FPS: %.1f   Speed: %d gen/s   Random: %.0f%%   Alive: %llu (%.2f%%)%s",
         static_cast<unsigned long long>(generation_),
         fps_,
         currentSimulationSpeed(),
         currentRandomAliveProbability() * 100.0,
+        static_cast<unsigned long long>(aliveCells),
+        alivePercentage,
         paused_ ? "   [Paused]" : "");
 
     ScreenFlip();
