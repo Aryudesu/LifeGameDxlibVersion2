@@ -6,7 +6,7 @@ class LifeRenderer {
 public:
     LifeRenderer(int screenWidth, int screenHeight);
 
-    void draw(const LifeBoard& board) const;
+    void draw(const LifeBoard& board, int cameraX, int cameraY, int cellSize) const;
 
 private:
     int screenWidth_;
