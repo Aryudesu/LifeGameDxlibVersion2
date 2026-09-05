@@ -48,6 +48,9 @@ InputFrame InputController::update() {
     const bool gIsDown = CheckHitKey(KEY_INPUT_G) != 0;
     input.toggleGrid = pressedThisFrame(gIsDown, gWasDown_);
 
+    const bool pIsDown = CheckHitKey(KEY_INPUT_P) != 0;
+    input.selectNextPattern = pressedThisFrame(pIsDown, pWasDown_);
+
     const bool shiftIsDown =
         CheckHitKey(KEY_INPUT_LSHIFT) != 0 ||
         CheckHitKey(KEY_INPUT_RSHIFT) != 0;
@@ -88,6 +91,7 @@ InputFrame InputController::update() {
 
     const int mouseInput = GetMouseInput();
     input.mouseLeftDown = (mouseInput & MOUSE_INPUT_LEFT) != 0;
+    input.mouseLeftPressed = pressedThisFrame(input.mouseLeftDown, mouseLeftWasDown_);
     input.mouseRightDown = (mouseInput & MOUSE_INPUT_RIGHT) != 0;
     input.mouseMiddleDown = (mouseInput & MOUSE_INPUT_MIDDLE) != 0;
 
