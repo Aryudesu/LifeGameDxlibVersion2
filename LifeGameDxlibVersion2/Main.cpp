@@ -7,6 +7,28 @@ constexpr int ScreenWidth = 1024;
 constexpr int ScreenHeight = 1024;
 constexpr int BoardWidth = 1536;
 constexpr int BoardHeight = 1536;
+
+void editBoardWithMouse(LifeBoard& board) {
+    int mouseX = 0;
+    int mouseY = 0;
+    GetMousePoint(&mouseX, &mouseY);
+
+    if (mouseX < 0 || mouseY < 0 ||
+        mouseX >= ScreenWidth || mouseY >= ScreenHeight ||
+        mouseX >= board.width() || mouseY >= board.height()) {
+        return;
+    }
+
+    const int mouseInput = GetMouseInput();
+
+    if ((mouseInput & MOUSE_INPUT_LEFT) != 0) {
+        board.setAlive(mouseX, mouseY, true);
+    }
+
+    if ((mouseInput & MOUSE_INPUT_RIGHT) != 0) {
+        board.setAlive(mouseX, mouseY, false);
+    }
+}
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -39,7 +61,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         }
         enterWasDown = enterIsDown;
 
-        if (!paused) {
+        if (paused) {
+            editBoardWithMouse(board);
+        } else {
             board.step();
         }
 
