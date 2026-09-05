@@ -26,6 +26,11 @@ inline constexpr std::array<int, 8> SimulationSpeeds = {
 };
 inline constexpr std::size_t DefaultSimulationSpeedIndex = 4;
 
+inline constexpr std::array<double, 4> RandomAliveProbabilities = {
+    0.10, 0.20, 0.30, 0.50
+};
+inline constexpr std::size_t DefaultRandomAliveProbabilityIndex = 1;
+
 inline constexpr int HudX = 8;
 inline constexpr int HudY = 8;
 inline constexpr int HudColorR = 255;
