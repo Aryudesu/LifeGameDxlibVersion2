@@ -101,8 +101,79 @@ void LifeBoard::clearUnusedBits() noexcept {
 void LifeBoard::step() {
     std::fill(next_.begin(), next_.end(), Word{0});
 
-    // 初回移植では正しさを優先し、BitBoard に格納したセルを素直に走査する。
-    // 後続で 64 セル単位の bit-parallel 更新へ置き換える。
+    if (width_ % BitsPerWord == 0) {
+        const auto addBits = [](Word value, Word& ones, Word& twos, Word& fours, Word& eights) {
+            Word carry = ones & value;
+            ones ^= value;
+
+            Word nextCarry = twos & carry;
+            twos ^= carry;
+            carry = nextCarry;
+
+            nextCarry = fours & carry;
+            fours ^= carry;
+            carry = nextCarry;
+
+            eights ^= carry;
+        };
+
+        for (int y = 0; y < height_; ++y) {
+            const int northY = (y == 0) ? height_ - 1 : y - 1;
+            const int southY = (y + 1 == height_) ? 0 : y + 1;
+
+            const std::size_t northBase = static_cast<std::size_t>(northY) * wordsPerRow_;
+            const std::size_t centerBase = static_cast<std::size_t>(y) * wordsPerRow_;
+            const std::size_t southBase = static_cast<std::size_t>(southY) * wordsPerRow_;
+
+            for (int wordX = 0; wordX < wordsPerRow_; ++wordX) {
+                const int leftWordX = (wordX == 0) ? wordsPerRow_ - 1 : wordX - 1;
+                const int rightWordX = (wordX + 1 == wordsPerRow_) ? 0 : wordX + 1;
+
+                const Word northLeft = current_[northBase + leftWordX];
+                const Word north = current_[northBase + wordX];
+                const Word northRight = current_[northBase + rightWordX];
+
+                const Word centerLeft = current_[centerBase + leftWordX];
+                const Word center = current_[centerBase + wordX];
+                const Word centerRight = current_[centerBase + rightWordX];
+
+                const Word southLeft = current_[southBase + leftWordX];
+                const Word south = current_[southBase + wordX];
+                const Word southRight = current_[southBase + rightWordX];
+
+                const Word northWest = (north << 1) | (northLeft >> 63);
+                const Word northEast = (north >> 1) | (northRight << 63);
+                const Word west = (center << 1) | (centerLeft >> 63);
+                const Word east = (center >> 1) | (centerRight << 63);
+                const Word southWest = (south << 1) | (southLeft >> 63);
+                const Word southEast = (south >> 1) | (southRight << 63);
+
+                Word ones = 0;
+                Word twos = 0;
+                Word fours = 0;
+                Word eights = 0;
+
+                addBits(northWest, ones, twos, fours, eights);
+                addBits(north, ones, twos, fours, eights);
+                addBits(northEast, ones, twos, fours, eights);
+                addBits(west, ones, twos, fours, eights);
+                addBits(east, ones, twos, fours, eights);
+                addBits(southWest, ones, twos, fours, eights);
+                addBits(south, ones, twos, fours, eights);
+                addBits(southEast, ones, twos, fours, eights);
+
+                const Word lowCountMask = ~(eights | fours);
+                const Word exactlyTwo = lowCountMask & twos & ~ones;
+                const Word exactlyThree = lowCountMask & twos & ones;
+
+                next_[centerBase + wordX] = exactlyThree | (center & exactlyTwo);
+            }
+        }
+
+        current_.swap(next_);
+        return;
+    }
+
     for (int y = 0; y < height_; ++y) {
         for (int x = 0; x < width_; ++x) {
             const int neighbors = countNeighbors(x, y);
