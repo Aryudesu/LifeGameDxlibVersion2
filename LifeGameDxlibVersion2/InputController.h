@@ -3,6 +3,7 @@
 struct InputFrame {
     bool togglePause = false;
     bool clearBoard = false;
+    bool randomizeBoard = false;
     bool save = false;
     bool load = false;
     bool singleStep = false;
@@ -32,6 +33,7 @@ public:
 private:
     bool enterWasDown_ = false;
     bool deleteWasDown_ = false;
+    bool rWasDown_ = false;
     bool saveWasDown_ = false;
     bool loadWasDown_ = false;
     bool spaceWasDown_ = false;
