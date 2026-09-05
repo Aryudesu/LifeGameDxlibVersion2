@@ -18,6 +18,7 @@ public:
     void setAlive(int x, int y, bool alive) noexcept;
     void clear() noexcept;
     void randomize(double aliveProbability = 1.0 / 6.0);
+    std::uint64_t aliveCellCount() const noexcept;
     void step();
 
 private:
