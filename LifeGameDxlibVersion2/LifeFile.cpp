@@ -11,7 +11,7 @@
 
 namespace {
 constexpr std::array<char, 8> Magic = {'A', 'R', 'Y', 'L', 'I', 'F', 'E', '2'};
-constexpr std::uint32_t FormatVersion = 1;
+constexpr std::uint32_t FormatVersion = 2;
 constexpr std::uint64_t MaxPayloadBytes = 64ULL * 1024ULL * 1024ULL;
 
 void writeU32(std::ostream& output, std::uint32_t value) {
@@ -86,7 +86,11 @@ bool replaceFile(const std::string& temporaryPath, const std::string& destinatio
 }
 
 namespace LifeFile {
-bool save(const LifeBoard& board, const std::string& path, std::string& errorMessage) {
+bool save(
+    const LifeBoard& board,
+    std::uint64_t generation,
+    const std::string& path,
+    std::string& errorMessage) {
     errorMessage.clear();
 
     if (board.width() <= 0 || board.height() <= 0) {
@@ -111,6 +115,7 @@ bool save(const LifeBoard& board, const std::string& path, std::string& errorMes
     writeU32(output, FormatVersion);
     writeU32(output, static_cast<std::uint32_t>(board.width()));
     writeU32(output, static_cast<std::uint32_t>(board.height()));
+    writeU64(output, generation);
     writeU64(output, static_cast<std::uint64_t>(payload.size()));
     writeU32(output, checksum(payload));
     output.write(
@@ -135,7 +140,11 @@ bool save(const LifeBoard& board, const std::string& path, std::string& errorMes
     return true;
 }
 
-bool load(LifeBoard& board, const std::string& path, std::string& errorMessage) {
+bool load(
+    LifeBoard& board,
+    std::uint64_t& generation,
+    const std::string& path,
+    std::string& errorMessage) {
     errorMessage.clear();
 
     std::ifstream input(path, std::ios::binary);
@@ -154,12 +163,14 @@ bool load(LifeBoard& board, const std::string& path, std::string& errorMessage) 
     std::uint32_t version = 0;
     std::uint32_t width = 0;
     std::uint32_t height = 0;
+    std::uint64_t loadedGeneration = 0;
     std::uint64_t payloadSize = 0;
     std::uint32_t storedChecksum = 0;
 
     if (!readU32(input, version) ||
         !readU32(input, width) ||
         !readU32(input, height) ||
+        !readU64(input, loadedGeneration) ||
         !readU64(input, payloadSize) ||
         !readU32(input, storedChecksum)) {
         errorMessage = "The save file header is truncated.";
@@ -222,6 +233,7 @@ bool load(LifeBoard& board, const std::string& path, std::string& errorMessage) 
         }
     }
 
+    generation = loadedGeneration;
     return true;
 }
 }
