@@ -1,5 +1,6 @@
 #pragma once
 
+class Camera;
 class LifeBoard;
 
 class LifeRenderer {
@@ -8,9 +9,7 @@ public:
 
     void draw(
         const LifeBoard& board,
-        int cameraX,
-        int cameraY,
-        int cellSize,
+        const Camera& camera,
         bool showGrid) const;
 
 private:

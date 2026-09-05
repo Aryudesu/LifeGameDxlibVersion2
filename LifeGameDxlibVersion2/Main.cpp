@@ -1,11 +1,11 @@
 #include "DxLib.h"
 #include "AppConfig.h"
+#include "Camera.h"
 #include "InputController.h"
 #include "LifeBoard.h"
 #include "LifeFile.h"
 #include "LifeRenderer.h"
 
-#include <algorithm>
 #include <commdlg.h>
 #include <cstring>
 #include <string>
@@ -68,45 +68,17 @@ void showFileError(const std::string& message) {
         MB_OK | MB_ICONERROR);
 }
 
-void clampCamera(const LifeBoard& board, int cellSize, int& cameraX, int& cameraY) {
-    const int visibleColumns = (AppConfig::ScreenWidth + cellSize - 1) / cellSize;
-    const int visibleRows = (AppConfig::ScreenHeight + cellSize - 1) / cellSize;
-    const int maxCameraX = std::max(0, board.width() - visibleColumns);
-    const int maxCameraY = std::max(0, board.height() - visibleRows);
-
-    cameraX = std::clamp(cameraX, 0, maxCameraX);
-    cameraY = std::clamp(cameraY, 0, maxCameraY);
-}
-
-void updateCamera(
-    const LifeBoard& board,
-    const InputFrame& input,
-    int cellSize,
-    int& cameraX,
-    int& cameraY) {
-    cameraX += input.cameraDeltaX * AppConfig::CameraMoveSpeed;
-    cameraY += input.cameraDeltaY * AppConfig::CameraMoveSpeed;
-    clampCamera(board, cellSize, cameraX, cameraY);
-}
-
 void editBoardWithMouse(
     LifeBoard& board,
     const InputFrame& input,
-    int cameraX,
-    int cameraY,
-    int cellSize) {
+    const Camera& camera) {
     if (input.mouseX < 0 || input.mouseY < 0 ||
         input.mouseX >= AppConfig::ScreenWidth ||
         input.mouseY >= AppConfig::ScreenHeight) {
         return;
     }
 
-    const int boardX = cameraX + input.mouseX / cellSize;
-    const int boardY = cameraY + input.mouseY / cellSize;
-    if (boardX < 0 || boardY < 0 ||
-        boardX >= board.width() || boardY >= board.height()) {
-        return;
-    }
+    const auto [boardX, boardY] = camera.screenToBoard(input.mouseX, input.mouseY);
 
     if (input.mouseLeftDown) {
         board.setAlive(boardX, boardY, true);
@@ -136,14 +108,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     LifeBoard board(AppConfig::BoardWidth, AppConfig::BoardHeight);
     LifeRenderer renderer(AppConfig::ScreenWidth, AppConfig::ScreenHeight);
+    Camera camera(
+        AppConfig::BoardWidth,
+        AppConfig::BoardHeight,
+        AppConfig::ScreenWidth,
+        AppConfig::ScreenHeight,
+        AppConfig::MinCellSize);
     InputController inputController;
     board.randomize();
 
     bool paused = false;
     bool showGrid = false;
-    int cameraX = 0;
-    int cameraY = 0;
-    int cellSize = AppConfig::MinCellSize;
 
     while (ProcessMessage() == 0) {
         const InputFrame input = inputController.update();
@@ -186,20 +161,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             showGrid = !showGrid;
         }
 
-        if (input.zoomIn && cellSize < AppConfig::MaxCellSize) {
-            cellSize *= 2;
-            clampCamera(board, cellSize, cameraX, cameraY);
+        if (input.zoomIn) {
+            camera.zoomIn(AppConfig::MaxCellSize);
         }
 
-        if (input.zoomOut && cellSize > AppConfig::MinCellSize) {
-            cellSize /= 2;
-            clampCamera(board, cellSize, cameraX, cameraY);
+        if (input.zoomOut) {
+            camera.zoomOut(AppConfig::MinCellSize);
         }
 
-        updateCamera(board, input, cellSize, cameraX, cameraY);
+        camera.move(
+            input.cameraDeltaX * AppConfig::CameraMoveSpeed,
+            input.cameraDeltaY * AppConfig::CameraMoveSpeed);
 
         if (paused) {
-            editBoardWithMouse(board, input, cameraX, cameraY, cellSize);
+            editBoardWithMouse(board, input, camera);
             if (input.singleStep) {
                 board.step();
             }
@@ -208,7 +183,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         }
 
         ClearDrawScreen();
-        renderer.draw(board, cameraX, cameraY, cellSize, showGrid);
+        renderer.draw(board, camera, showGrid);
         ScreenFlip();
     }
 
