@@ -109,14 +109,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         const bool singleStepRequested = paused && spaceIsDown && !spaceWasDown;
         spaceWasDown = spaceIsDown;
 
-        const bool plusIsDown = CheckHitKey(KEY_INPUT_ADD) != 0;
+        const bool shiftIsDown =
+            CheckHitKey(KEY_INPUT_LSHIFT) != 0 ||
+            CheckHitKey(KEY_INPUT_RSHIFT) != 0;
+        const bool plusIsDown =
+            CheckHitKey(KEY_INPUT_ADD) != 0 ||
+            (shiftIsDown && CheckHitKey(KEY_INPUT_SEMICOLON) != 0);
         if (plusIsDown && !plusWasDown && cellSize < MaxCellSize) {
             cellSize *= 2;
             clampCamera(board, cellSize, cameraX, cameraY);
         }
         plusWasDown = plusIsDown;
 
-        const bool minusIsDown = CheckHitKey(KEY_INPUT_SUBTRACT) != 0;
+        const bool minusIsDown =
+            CheckHitKey(KEY_INPUT_SUBTRACT) != 0 ||
+            CheckHitKey(KEY_INPUT_MINUS) != 0;
         if (minusIsDown && !minusWasDown && cellSize > MinCellSize) {
             cellSize /= 2;
             clampCamera(board, cellSize, cameraX, cameraY);
