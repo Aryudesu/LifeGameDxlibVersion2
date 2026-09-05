@@ -24,6 +24,7 @@ private:
     void advanceGeneration();
     void changeSimulationSpeed(int direction);
     int currentSimulationSpeed() const noexcept;
+    double currentRandomAliveProbability() const noexcept;
 
     LifeBoard board_;
     LifeRenderer renderer_;
@@ -33,6 +34,7 @@ private:
     bool showGrid_ = false;
     std::uint64_t generation_ = 0;
     std::size_t simulationSpeedIndex_ = 0;
+    std::size_t randomAliveProbabilityIndex_ = 0;
     double simulationAccumulator_ = 0.0;
     double fps_ = 0.0;
 };
