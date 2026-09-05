@@ -202,7 +202,7 @@ void LifeGameApplication::saveBoard() {
     }
 
     std::string errorMessage;
-    if (!LifeFile::save(board_, path, errorMessage)) {
+    if (!LifeFile::save(board_, generation_, path, errorMessage)) {
         FileDialog::showError(errorMessage);
     }
 }
@@ -214,8 +214,9 @@ void LifeGameApplication::loadBoard() {
     }
 
     std::string errorMessage;
-    if (LifeFile::load(board_, path, errorMessage)) {
-        generation_ = 0;
+    std::uint64_t loadedGeneration = 0;
+    if (LifeFile::load(board_, loadedGeneration, path, errorMessage)) {
+        generation_ = loadedGeneration;
         simulationAccumulator_ = 0.0;
         setPaused(true);
         return;
