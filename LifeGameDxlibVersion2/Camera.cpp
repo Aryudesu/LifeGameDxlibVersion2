@@ -40,12 +40,31 @@ void Camera::move(int deltaX, int deltaY) noexcept {
     y_ = wrap(y_ + deltaY, boardHeight_);
 }
 
+void Camera::panByPixels(int deltaScreenX, int deltaScreenY) noexcept {
+    panRemainderX_ -= deltaScreenX;
+    panRemainderY_ -= deltaScreenY;
+
+    const int deltaCellsX = panRemainderX_ / cellSize_;
+    const int deltaCellsY = panRemainderY_ / cellSize_;
+
+    panRemainderX_ -= deltaCellsX * cellSize_;
+    panRemainderY_ -= deltaCellsY * cellSize_;
+
+    move(deltaCellsX, deltaCellsY);
+}
+
+void Camera::endPan() noexcept {
+    panRemainderX_ = 0;
+    panRemainderY_ = 0;
+}
+
 bool Camera::zoomIn(int maxCellSize) noexcept {
     if (cellSize_ >= maxCellSize) {
         return false;
     }
 
     cellSize_ *= 2;
+    endPan();
     return true;
 }
 
@@ -55,6 +74,37 @@ bool Camera::zoomOut(int minCellSize) noexcept {
     }
 
     cellSize_ /= 2;
+    endPan();
+    return true;
+}
+
+bool Camera::zoomInAt(int screenX, int screenY, int maxCellSize) noexcept {
+    if (cellSize_ >= maxCellSize) {
+        return false;
+    }
+
+    return zoomAt(screenX, screenY, cellSize_ * 2);
+}
+
+bool Camera::zoomOutAt(int screenX, int screenY, int minCellSize) noexcept {
+    if (cellSize_ <= minCellSize) {
+        return false;
+    }
+
+    return zoomAt(screenX, screenY, cellSize_ / 2);
+}
+
+bool Camera::zoomAt(int screenX, int screenY, int newCellSize) noexcept {
+    if (newCellSize <= 0 || newCellSize == cellSize_) {
+        return false;
+    }
+
+    const auto [anchorBoardX, anchorBoardY] = screenToBoard(screenX, screenY);
+
+    cellSize_ = newCellSize;
+    x_ = wrap(anchorBoardX - screenX / cellSize_, boardWidth_);
+    y_ = wrap(anchorBoardY - screenY / cellSize_, boardHeight_);
+    endPan();
     return true;
 }
 
