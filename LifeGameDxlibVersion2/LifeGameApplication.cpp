@@ -19,8 +19,9 @@ LifeGameApplication::LifeGameApplication()
           AppConfig::ScreenWidth,
           AppConfig::ScreenHeight,
           AppConfig::MinCellSize),
-      simulationSpeedIndex_(AppConfig::DefaultSimulationSpeedIndex) {
-    board_.randomize();
+      simulationSpeedIndex_(AppConfig::DefaultSimulationSpeedIndex),
+      randomAliveProbabilityIndex_(AppConfig::DefaultRandomAliveProbabilityIndex) {
+    board_.randomize(currentRandomAliveProbability());
     SetMainWindowText(AppConfig::WindowTitle);
 }
 
@@ -87,8 +88,13 @@ void LifeGameApplication::update(const InputFrame& input, double elapsedSeconds)
         setPaused(true);
     }
 
+    if (input.randomDensityIndex >= 0 &&
+        input.randomDensityIndex < static_cast<int>(AppConfig::RandomAliveProbabilities.size())) {
+        randomAliveProbabilityIndex_ = static_cast<std::size_t>(input.randomDensityIndex);
+    }
+
     if (input.randomizeBoard) {
-        board_.randomize();
+        board_.randomize(currentRandomAliveProbability());
         generation_ = 0;
         simulationAccumulator_ = 0.0;
     }
@@ -184,10 +190,11 @@ void LifeGameApplication::draw() const {
             AppConfig::HudColorR,
             AppConfig::HudColorG,
             AppConfig::HudColorB),
-        "Generation: %llu   FPS: %.1f   Speed: %d gen/s%s",
+        "Generation: %llu   FPS: %.1f   Speed: %d gen/s   Density: %.0f%%%s",
         static_cast<unsigned long long>(generation_),
         fps_,
         currentSimulationSpeed(),
+        currentRandomAliveProbability() * 100.0,
         paused_ ? "   [Paused]" : "");
 
     ScreenFlip();
@@ -268,4 +275,8 @@ void LifeGameApplication::changeSimulationSpeed(int direction) {
 
 int LifeGameApplication::currentSimulationSpeed() const noexcept {
     return AppConfig::SimulationSpeeds[simulationSpeedIndex_];
+}
+
+double LifeGameApplication::currentRandomAliveProbability() const noexcept {
+    return AppConfig::RandomAliveProbabilities[randomAliveProbabilityIndex_];
 }
