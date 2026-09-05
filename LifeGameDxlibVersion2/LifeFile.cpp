@@ -11,8 +11,7 @@
 
 namespace {
 constexpr std::array<char, 8> Magic = {'A', 'R', 'Y', 'L', 'I', 'F', 'E', '2'};
-constexpr std::uint32_t LegacyFormatVersion = 1;
-constexpr std::uint32_t CurrentFormatVersion = 2;
+constexpr std::uint32_t FormatVersion = 2;
 constexpr std::uint64_t MaxPayloadBytes = 64ULL * 1024ULL * 1024ULL;
 
 void writeU32(std::ostream& output, std::uint32_t value) {
@@ -113,7 +112,7 @@ bool save(
     }
 
     output.write(Magic.data(), static_cast<std::streamsize>(Magic.size()));
-    writeU32(output, CurrentFormatVersion);
+    writeU32(output, FormatVersion);
     writeU32(output, static_cast<std::uint32_t>(board.width()));
     writeU32(output, static_cast<std::uint32_t>(board.height()));
     writeU64(output, generation);
@@ -170,24 +169,16 @@ bool load(
 
     if (!readU32(input, version) ||
         !readU32(input, width) ||
-        !readU32(input, height)) {
-        errorMessage = "The save file header is truncated.";
-        return false;
-    }
-
-    if (version == CurrentFormatVersion) {
-        if (!readU64(input, loadedGeneration)) {
-            errorMessage = "The save file header is truncated.";
-            return false;
-        }
-    } else if (version != LegacyFormatVersion) {
-        errorMessage = "Unsupported save file version.";
-        return false;
-    }
-
-    if (!readU64(input, payloadSize) ||
+        !readU32(input, height) ||
+        !readU64(input, loadedGeneration) ||
+        !readU64(input, payloadSize) ||
         !readU32(input, storedChecksum)) {
         errorMessage = "The save file header is truncated.";
+        return false;
+    }
+
+    if (version != FormatVersion) {
+        errorMessage = "Unsupported save file version.";
         return false;
     }
 
