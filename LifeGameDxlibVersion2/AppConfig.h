@@ -1,5 +1,8 @@
 #pragma once
 
+#include <array>
+#include <cstddef>
+
 namespace AppConfig {
 inline constexpr char WindowTitle[] = "LifeGameDxlibVersion2";
 inline constexpr char PausedWindowTitle[] = "LifeGameDxlibVersion2 - Paused";
@@ -7,6 +10,9 @@ inline constexpr char PausedWindowTitle[] = "LifeGameDxlibVersion2 - Paused";
 inline constexpr int ScreenWidth = 1024;
 inline constexpr int ScreenHeight = 1024;
 inline constexpr int ScreenColorDepth = 32;
+inline constexpr int TargetFps = 60;
+inline constexpr double FpsSampleSeconds = 0.5;
+inline constexpr double MaxSimulationDeltaSeconds = 0.1;
 
 inline constexpr int BoardWidth = 1536;
 inline constexpr int BoardHeight = 1536;
@@ -14,6 +20,17 @@ inline constexpr int BoardHeight = 1536;
 inline constexpr int MinCellSize = 1;
 inline constexpr int MaxCellSize = 32;
 inline constexpr int CameraMoveSpeed = 8;
+
+inline constexpr std::array<int, 8> SimulationSpeeds = {
+    1, 5, 10, 30, 60, 120, 300, 600
+};
+inline constexpr std::size_t DefaultSimulationSpeedIndex = 4;
+
+inline constexpr int HudX = 8;
+inline constexpr int HudY = 8;
+inline constexpr int HudColorR = 255;
+inline constexpr int HudColorG = 255;
+inline constexpr int HudColorB = 255;
 
 inline constexpr int AliveColorR = 0;
 inline constexpr int AliveColorG = 255;
