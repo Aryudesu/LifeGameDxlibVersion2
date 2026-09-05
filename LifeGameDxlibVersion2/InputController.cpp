@@ -48,6 +48,12 @@ InputFrame InputController::update() {
         CheckHitKey(KEY_INPUT_MINUS) != 0;
     input.zoomOut = pressedThisFrame(minusIsDown, minusWasDown_);
 
+    const bool pageUpIsDown = CheckHitKey(KEY_INPUT_PGUP) != 0;
+    input.speedUp = pressedThisFrame(pageUpIsDown, pageUpWasDown_);
+
+    const bool pageDownIsDown = CheckHitKey(KEY_INPUT_PGDN) != 0;
+    input.speedDown = pressedThisFrame(pageDownIsDown, pageDownWasDown_);
+
     input.cameraDeltaX =
         (CheckHitKey(KEY_INPUT_RIGHT) != 0 ? 1 : 0) -
         (CheckHitKey(KEY_INPUT_LEFT) != 0 ? 1 : 0);
