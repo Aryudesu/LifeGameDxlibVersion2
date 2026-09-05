@@ -50,6 +50,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     bool paused = false;
     bool enterWasDown = false;
+    bool spaceWasDown = false;
 
     while (ProcessMessage() == 0) {
         const bool enterIsDown = CheckHitKey(KEY_INPUT_RETURN) != 0;
@@ -61,8 +62,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         }
         enterWasDown = enterIsDown;
 
+        const bool spaceIsDown = CheckHitKey(KEY_INPUT_SPACE) != 0;
+        const bool singleStepRequested = paused && spaceIsDown && !spaceWasDown;
+        spaceWasDown = spaceIsDown;
+
         if (paused) {
             editBoardWithMouse(board);
+            if (singleStepRequested) {
+                board.step();
+            }
         } else {
             board.step();
         }
