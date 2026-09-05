@@ -41,9 +41,29 @@ constexpr std::array<CellOffset, 9> LightweightSpaceshipPattern = {{
     {1, 2}
 }};
 
+CellOffset rotateOffsetClockwise(CellOffset offset, int quarterTurns) {
+    int x = offset.first;
+    int y = offset.second;
+
+    for (int i = 0; i < quarterTurns; ++i) {
+        const int rotatedX = -y;
+        const int rotatedY = x;
+        x = rotatedX;
+        y = rotatedY;
+    }
+
+    return {x, y};
+}
+
 template <std::size_t N>
-void placePattern(LifeBoard& board, int anchorX, int anchorY, const std::array<CellOffset, N>& pattern) {
-    for (const auto& [offsetX, offsetY] : pattern) {
+void placePattern(
+    LifeBoard& board,
+    int anchorX,
+    int anchorY,
+    const std::array<CellOffset, N>& pattern,
+    int quarterTurns) {
+    for (const CellOffset& offset : pattern) {
+        const auto [offsetX, offsetY] = rotateOffsetClockwise(offset, quarterTurns);
         board.setAlive(anchorX + offsetX, anchorY + offsetY, true);
     }
 }
@@ -154,6 +174,18 @@ void LifeGameApplication::update(const InputFrame& input, double elapsedSeconds)
         selectNextPattern();
     }
 
+    if (input.selectPreviousPattern) {
+        selectPreviousPattern();
+    }
+
+    if (input.rotatePatternLeft) {
+        rotatePattern(-1);
+    }
+
+    if (input.rotatePatternRight) {
+        rotatePattern(1);
+    }
+
     if (input.speedUp) {
         changeSimulationSpeed(1);
     }
@@ -233,6 +265,11 @@ void LifeGameApplication::draw() const {
         ? 0.0
         : static_cast<double>(aliveCells) * 100.0 / static_cast<double>(totalCells);
 
+    std::string patternLabel = currentPatternName();
+    if (selectedPattern_ != PlacementPattern::Cell) {
+        patternLabel += " R" + std::to_string(currentPatternRotationDegrees());
+    }
+
     DrawFormatString(
         AppConfig::HudX,
         AppConfig::HudY,
@@ -247,7 +284,7 @@ void LifeGameApplication::draw() const {
         currentRandomAliveProbability() * 100.0,
         static_cast<unsigned long long>(aliveCells),
         alivePercentage,
-        currentPatternName(),
+        patternLabel.c_str(),
         paused_ ? "   [Paused]" : "");
 
     ScreenFlip();
@@ -316,13 +353,13 @@ void LifeGameApplication::editBoardWithMouse(const InputFrame& input) {
 void LifeGameApplication::placeSelectedPattern(int boardX, int boardY) {
     switch (selectedPattern_) {
     case PlacementPattern::Glider:
-        placePattern(board_, boardX, boardY, GliderPattern);
+        placePattern(board_, boardX, boardY, GliderPattern, patternRotationQuarterTurns_);
         break;
     case PlacementPattern::Blinker:
-        placePattern(board_, boardX, boardY, BlinkerPattern);
+        placePattern(board_, boardX, boardY, BlinkerPattern, patternRotationQuarterTurns_);
         break;
     case PlacementPattern::LightweightSpaceship:
-        placePattern(board_, boardX, boardY, LightweightSpaceshipPattern);
+        placePattern(board_, boardX, boardY, LightweightSpaceshipPattern, patternRotationQuarterTurns_);
         break;
     case PlacementPattern::Cell:
     case PlacementPattern::Count:
@@ -335,6 +372,24 @@ void LifeGameApplication::selectNextPattern() noexcept {
     const std::size_t next =
         (static_cast<std::size_t>(selectedPattern_) + 1) % patternCount;
     selectedPattern_ = static_cast<PlacementPattern>(next);
+    patternRotationQuarterTurns_ = 0;
+}
+
+void LifeGameApplication::selectPreviousPattern() noexcept {
+    const std::size_t patternCount = static_cast<std::size_t>(PlacementPattern::Count);
+    const std::size_t current = static_cast<std::size_t>(selectedPattern_);
+    const std::size_t previous = (current + patternCount - 1) % patternCount;
+    selectedPattern_ = static_cast<PlacementPattern>(previous);
+    patternRotationQuarterTurns_ = 0;
+}
+
+void LifeGameApplication::rotatePattern(int direction) noexcept {
+    if (selectedPattern_ == PlacementPattern::Cell || direction == 0) {
+        return;
+    }
+
+    patternRotationQuarterTurns_ =
+        (patternRotationQuarterTurns_ + (direction > 0 ? 1 : 3)) % 4;
 }
 
 const char* LifeGameApplication::currentPatternName() const noexcept {
@@ -352,6 +407,10 @@ const char* LifeGameApplication::currentPatternName() const noexcept {
     }
 
     return "Cell";
+}
+
+int LifeGameApplication::currentPatternRotationDegrees() const noexcept {
+    return patternRotationQuarterTurns_ * 90;
 }
 
 void LifeGameApplication::advanceGeneration() {
