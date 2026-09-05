@@ -48,12 +48,25 @@ InputFrame InputController::update() {
     const bool gIsDown = CheckHitKey(KEY_INPUT_G) != 0;
     input.toggleGrid = pressedThisFrame(gIsDown, gWasDown_);
 
-    const bool pIsDown = CheckHitKey(KEY_INPUT_P) != 0;
-    input.selectNextPattern = pressedThisFrame(pIsDown, pWasDown_);
-
     const bool shiftIsDown =
         CheckHitKey(KEY_INPUT_LSHIFT) != 0 ||
         CheckHitKey(KEY_INPUT_RSHIFT) != 0;
+
+    const bool pIsDown = CheckHitKey(KEY_INPUT_P) != 0;
+    if (pressedThisFrame(pIsDown, pWasDown_)) {
+        if (shiftIsDown) {
+            input.selectPreviousPattern = true;
+        } else {
+            input.selectNextPattern = true;
+        }
+    }
+
+    const bool qIsDown = CheckHitKey(KEY_INPUT_Q) != 0;
+    input.rotatePatternLeft = pressedThisFrame(qIsDown, qWasDown_);
+
+    const bool eIsDown = CheckHitKey(KEY_INPUT_E) != 0;
+    input.rotatePatternRight = pressedThisFrame(eIsDown, eWasDown_);
+
     const bool plusIsDown =
         CheckHitKey(KEY_INPUT_ADD) != 0 ||
         (shiftIsDown && CheckHitKey(KEY_INPUT_SEMICOLON) != 0);
