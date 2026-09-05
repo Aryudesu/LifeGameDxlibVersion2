@@ -1,6 +1,7 @@
 #include "LifeBoard.h"
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 
 LifeBoard::LifeBoard(int width, int height)
@@ -67,6 +68,14 @@ void LifeBoard::randomize(double aliveProbability) {
             }
         }
     }
+}
+
+std::uint64_t LifeBoard::aliveCellCount() const noexcept {
+    std::uint64_t count = 0;
+    for (const Word word : current_) {
+        count += static_cast<std::uint64_t>(std::popcount(word));
+    }
+    return count;
 }
 
 int LifeBoard::countNeighbors(int x, int y) const noexcept {
