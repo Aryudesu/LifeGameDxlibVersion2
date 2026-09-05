@@ -9,6 +9,7 @@ struct InputFrame {
     bool load = false;
     bool singleStep = false;
     bool toggleGrid = false;
+    bool selectNextPattern = false;
     bool zoomIn = false;
     bool zoomOut = false;
     bool speedUp = false;
@@ -23,6 +24,7 @@ struct InputFrame {
     int mouseDeltaY = 0;
     int mouseWheel = 0;
     bool mouseLeftDown = false;
+    bool mouseLeftPressed = false;
     bool mouseRightDown = false;
     bool mouseMiddleDown = false;
 };
@@ -39,10 +41,12 @@ private:
     bool loadWasDown_ = false;
     bool spaceWasDown_ = false;
     bool gWasDown_ = false;
+    bool pWasDown_ = false;
     bool plusWasDown_ = false;
     bool minusWasDown_ = false;
     bool pageUpWasDown_ = false;
     bool pageDownWasDown_ = false;
+    bool mouseLeftWasDown_ = false;
     bool mousePositionInitialized_ = false;
     int previousMouseX_ = 0;
     int previousMouseY_ = 0;
