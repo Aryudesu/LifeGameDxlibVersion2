@@ -12,6 +12,7 @@ DxLib を使用した Conway's Game of Life の Version 2 です。
 - `std::uint64_t` を用いた BitBoard と 64 セル単位の bit-parallel 世代更新
 - DxLib による 1024 x 1024 描画
 - 停止 / 再開 / 1世代送り
+- ランダム初期配置とランダム再生成
 - 停止中のマウスによるセル編集
 - キーボードおよびマウスによるカメラ移動・ズーム
 - `.ary2` 形式での保存 / 読込
@@ -25,6 +26,7 @@ DxLib を使用した Conway's Game of Life の Version 2 です。
 | Enter | 停止 / 再開 |
 | Space | 停止中に1世代進める |
 | Delete | 盤面をクリアして停止 |
+| R | 盤面をランダム再生成し、Generation を 0 に戻す |
 | G | グリッド表示切替 |
 | 矢印キー | カメラ移動 |
 | Shift + ; / + | ズームイン |
@@ -36,6 +38,8 @@ DxLib を使用した Conway's Game of Life の Version 2 です。
 | PageDown | シミュレーション速度を下げる |
 | Ctrl + S | 保存 |
 | Ctrl + L | 読込 |
+
+`R` によるランダム再生成では、停止 / 再生状態と選択中のシミュレーション速度はそのまま維持されます。
 
 シミュレーション速度は `1 / 5 / 10 / 30 / 60 / 120 / 300 / 600 gen/s` から選択できます。初期値は 60 gen/s です。
 
