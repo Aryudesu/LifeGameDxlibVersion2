@@ -87,6 +87,12 @@ void LifeGameApplication::update(const InputFrame& input, double elapsedSeconds)
         setPaused(true);
     }
 
+    if (input.randomizeBoard) {
+        board_.randomize();
+        generation_ = 0;
+        simulationAccumulator_ = 0.0;
+    }
+
     if (input.save) {
         saveBoard();
     }
