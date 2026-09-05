@@ -92,6 +92,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     bool plusWasDown = false;
     bool minusWasDown = false;
     bool gWasDown = false;
+    bool deleteWasDown = false;
     bool showGrid = false;
     int cameraX = 0;
     int cameraY = 0;
@@ -106,6 +107,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 : "LifeGameDxlibVersion2");
         }
         enterWasDown = enterIsDown;
+
+        const bool deleteIsDown = CheckHitKey(KEY_INPUT_DELETE) != 0;
+        if (deleteIsDown && !deleteWasDown) {
+            board.clear();
+            paused = true;
+            SetMainWindowText("LifeGameDxlibVersion2 - Paused");
+        }
+        deleteWasDown = deleteIsDown;
 
         const bool spaceIsDown = CheckHitKey(KEY_INPUT_SPACE) != 0;
         const bool singleStepRequested = paused && spaceIsDown && !spaceWasDown;
