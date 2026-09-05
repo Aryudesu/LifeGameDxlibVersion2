@@ -83,6 +83,7 @@
     <ClCompile Include="LifeRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AppConfig.h" />
     <ClInclude Include="LifeBoard.h" />
     <ClInclude Include="LifeFile.h" />
     <ClInclude Include="LifeRenderer.h" />

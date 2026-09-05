@@ -1,5 +1,6 @@
 #include "LifeRenderer.h"
 
+#include "AppConfig.h"
 #include "DxLib.h"
 #include "LifeBoard.h"
 
@@ -8,8 +9,14 @@
 LifeRenderer::LifeRenderer(int screenWidth, int screenHeight)
     : screenWidth_(screenWidth),
       screenHeight_(screenHeight),
-      aliveColor_(GetColor(0, 255, 0)),
-      gridColor_(GetColor(64, 64, 64)) {
+      aliveColor_(GetColor(
+          AppConfig::AliveColorR,
+          AppConfig::AliveColorG,
+          AppConfig::AliveColorB)),
+      gridColor_(GetColor(
+          AppConfig::GridColorR,
+          AppConfig::GridColorG,
+          AppConfig::GridColorB)) {
 }
 
 void LifeRenderer::draw(
