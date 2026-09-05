@@ -1,8 +1,14 @@
 #include "DxLib.h"
 #include "LifeBoard.h"
+#include "LifeFile.h"
 #include "LifeRenderer.h"
 
 #include <algorithm>
+#include <commdlg.h>
+#include <string>
+#include <windows.h>
+
+#pragma comment(lib, "Comdlg32.lib")
 
 namespace {
 constexpr int ScreenWidth = 1024;
@@ -12,6 +18,62 @@ constexpr int BoardHeight = 1536;
 constexpr int MinCellSize = 1;
 constexpr int MaxCellSize = 32;
 constexpr int CameraMoveSpeed = 8;
+
+void setWindowTitle(bool paused) {
+    SetMainWindowText(paused
+        ? "LifeGameDxlibVersion2 - Paused"
+        : "LifeGameDxlibVersion2");
+}
+
+bool chooseSavePath(std::string& path) {
+    char fileName[MAX_PATH] = "lifegame.ary2";
+    OPENFILENAMEA dialog{};
+    dialog.lStructSize = sizeof(dialog);
+    dialog.hwndOwner = GetMainWindowHandle();
+    dialog.lpstrFilter =
+        "LifeGame v2 (*.ary2)\0*.ary2\0"
+        "All Files (*.*)\0*.*\0";
+    dialog.lpstrFile = fileName;
+    dialog.nMaxFile = MAX_PATH;
+    dialog.lpstrDefExt = "ary2";
+    dialog.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+
+    if (GetSaveFileNameA(&dialog) == FALSE) {
+        return false;
+    }
+
+    path = fileName;
+    return true;
+}
+
+bool chooseLoadPath(std::string& path) {
+    char fileName[MAX_PATH] = {};
+    OPENFILENAMEA dialog{};
+    dialog.lStructSize = sizeof(dialog);
+    dialog.hwndOwner = GetMainWindowHandle();
+    dialog.lpstrFilter =
+        "LifeGame v2 (*.ary2)\0*.ary2\0"
+        "All Files (*.*)\0*.*\0";
+    dialog.lpstrFile = fileName;
+    dialog.nMaxFile = MAX_PATH;
+    dialog.lpstrDefExt = "ary2";
+    dialog.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+    if (GetOpenFileNameA(&dialog) == FALSE) {
+        return false;
+    }
+
+    path = fileName;
+    return true;
+}
+
+void showFileError(const std::string& message) {
+    MessageBoxA(
+        GetMainWindowHandle(),
+        message.c_str(),
+        "LifeGameDxlibVersion2",
+        MB_OK | MB_ICONERROR);
+}
 
 void clampCamera(const LifeBoard& board, int cellSize, int& cameraX, int& cameraY) {
     const int visibleColumns = (ScreenWidth + cellSize - 1) / cellSize;
@@ -93,6 +155,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     bool minusWasDown = false;
     bool gWasDown = false;
     bool deleteWasDown = false;
+    bool saveWasDown = false;
+    bool loadWasDown = false;
     bool showGrid = false;
     int cameraX = 0;
     int cameraY = 0;
@@ -102,9 +166,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         const bool enterIsDown = CheckHitKey(KEY_INPUT_RETURN) != 0;
         if (enterIsDown && !enterWasDown) {
             paused = !paused;
-            SetMainWindowText(paused
-                ? "LifeGameDxlibVersion2 - Paused"
-                : "LifeGameDxlibVersion2");
+            setWindowTitle(paused);
         }
         enterWasDown = enterIsDown;
 
@@ -112,9 +174,40 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         if (deleteIsDown && !deleteWasDown) {
             board.clear();
             paused = true;
-            SetMainWindowText("LifeGameDxlibVersion2 - Paused");
+            setWindowTitle(paused);
         }
         deleteWasDown = deleteIsDown;
+
+        const bool controlIsDown =
+            CheckHitKey(KEY_INPUT_LCONTROL) != 0 ||
+            CheckHitKey(KEY_INPUT_RCONTROL) != 0;
+
+        const bool saveIsDown = controlIsDown && CheckHitKey(KEY_INPUT_S) != 0;
+        if (saveIsDown && !saveWasDown) {
+            std::string path;
+            if (chooseSavePath(path)) {
+                std::string errorMessage;
+                if (!LifeFile::save(board, path, errorMessage)) {
+                    showFileError(errorMessage);
+                }
+            }
+        }
+        saveWasDown = saveIsDown;
+
+        const bool loadIsDown = controlIsDown && CheckHitKey(KEY_INPUT_L) != 0;
+        if (loadIsDown && !loadWasDown) {
+            std::string path;
+            if (chooseLoadPath(path)) {
+                std::string errorMessage;
+                if (LifeFile::load(board, path, errorMessage)) {
+                    paused = true;
+                    setWindowTitle(paused);
+                } else {
+                    showFileError(errorMessage);
+                }
+            }
+        }
+        loadWasDown = loadIsDown;
 
         const bool spaceIsDown = CheckHitKey(KEY_INPUT_SPACE) != 0;
         const bool singleStepRequested = paused && spaceIsDown && !spaceWasDown;
