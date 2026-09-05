@@ -1,10 +1,9 @@
 #include "LifeRenderer.h"
 
 #include "AppConfig.h"
+#include "Camera.h"
 #include "DxLib.h"
 #include "LifeBoard.h"
-
-#include <algorithm>
 
 LifeRenderer::LifeRenderer(int screenWidth, int screenHeight)
     : screenWidth_(screenWidth),
@@ -21,23 +20,23 @@ LifeRenderer::LifeRenderer(int screenWidth, int screenHeight)
 
 void LifeRenderer::draw(
     const LifeBoard& board,
-    int cameraX,
-    int cameraY,
-    int cellSize,
+    const Camera& camera,
     bool showGrid) const {
-    const int visibleColumns = (screenWidth_ + cellSize - 1) / cellSize;
-    const int visibleRows = (screenHeight_ + cellSize - 1) / cellSize;
-    const int endX = std::min(board.width(), cameraX + visibleColumns);
-    const int endY = std::min(board.height(), cameraY + visibleRows);
+    const int cellSize = camera.cellSize();
+    const int visibleColumns = camera.visibleColumns();
+    const int visibleRows = camera.visibleRows();
 
-    for (int y = cameraY; y < endY; ++y) {
-        const int screenY = (y - cameraY) * cellSize;
-        for (int x = cameraX; x < endX; ++x) {
-            if (!board.isAlive(x, y)) {
+    for (int row = 0; row < visibleRows; ++row) {
+        const int boardY = camera.boardYAtRow(row);
+        const int screenY = row * cellSize;
+
+        for (int column = 0; column < visibleColumns; ++column) {
+            const int boardX = camera.boardXAtColumn(column);
+            if (!board.isAlive(boardX, boardY)) {
                 continue;
             }
 
-            const int screenX = (x - cameraX) * cellSize;
+            const int screenX = column * cellSize;
             if (cellSize == 1) {
                 DrawPixel(screenX, screenY, aliveColor_);
             } else {
@@ -56,13 +55,10 @@ void LifeRenderer::draw(
         return;
     }
 
-    const int drawWidth = std::min(screenWidth_, (endX - cameraX) * cellSize);
-    const int drawHeight = std::min(screenHeight_, (endY - cameraY) * cellSize);
-
-    for (int x = 0; x <= drawWidth; x += cellSize) {
-        DrawLine(x, 0, x, drawHeight, gridColor_);
+    for (int x = 0; x <= screenWidth_; x += cellSize) {
+        DrawLine(x, 0, x, screenHeight_, gridColor_);
     }
-    for (int y = 0; y <= drawHeight; y += cellSize) {
-        DrawLine(0, y, drawWidth, y, gridColor_);
+    for (int y = 0; y <= screenHeight_; y += cellSize) {
+        DrawLine(0, y, screenWidth_, y, gridColor_);
     }
 }
