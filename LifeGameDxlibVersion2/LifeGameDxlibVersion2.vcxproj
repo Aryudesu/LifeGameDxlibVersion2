@@ -79,17 +79,21 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="InputController.cpp" />
     <ClCompile Include="LifeBoard.cpp" />
     <ClCompile Include="LifeFile.cpp" />
+    <ClCompile Include="LifeGameApplication.cpp" />
     <ClCompile Include="LifeRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="FileDialog.h" />
     <ClInclude Include="InputController.h" />
     <ClInclude Include="LifeBoard.h" />
     <ClInclude Include="LifeFile.h" />
+    <ClInclude Include="LifeGameApplication.h" />
     <ClInclude Include="LifeRenderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
