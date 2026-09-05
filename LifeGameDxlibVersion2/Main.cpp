@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <commdlg.h>
+#include <cstring>
 #include <string>
 #include <windows.h>
 
