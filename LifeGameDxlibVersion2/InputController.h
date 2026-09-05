@@ -4,6 +4,7 @@ struct InputFrame {
     bool togglePause = false;
     bool clearBoard = false;
     bool randomizeBoard = false;
+    int randomDensityIndex = -1;
     bool save = false;
     bool load = false;
     bool singleStep = false;
