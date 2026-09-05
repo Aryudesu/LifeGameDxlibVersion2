@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="InputController.cpp" />
     <ClCompile Include="LifeBoard.cpp" />
     <ClCompile Include="LifeFile.cpp" />
@@ -85,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="InputController.h" />
     <ClInclude Include="LifeBoard.h" />
     <ClInclude Include="LifeFile.h" />
