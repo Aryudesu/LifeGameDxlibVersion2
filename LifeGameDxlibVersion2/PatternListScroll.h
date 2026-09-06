@@ -11,6 +11,7 @@ public:
 
     int offset(PatternCategory category) const noexcept;
     int maxOffset(PatternCategory category) const noexcept;
+    int count(PatternCategory category) const noexcept;
     void scroll(PatternCategory category, int wheelDelta) noexcept;
     void ensurePatternVisible(std::size_t patternIndex) noexcept;
 
