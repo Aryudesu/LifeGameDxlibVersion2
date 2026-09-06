@@ -34,6 +34,14 @@ constexpr int PanelContentX = PanelX + PanelPadding;
 constexpr int PatternListY = 198;
 constexpr int PatternRowHeight = 28;
 constexpr int PatternListBottom = PatternListY + PatternListScroll::VisibleRows * PatternRowHeight;
+constexpr int RotationY = 864;
+constexpr int RotationButtonWidth = 48;
+constexpr int RotationValueWidth = 104;
+constexpr int RotationGap = 8;
+constexpr int RotationLeftX = PanelContentX;
+constexpr int RotationValueX = RotationLeftX + RotationButtonWidth + RotationGap;
+constexpr int RotationRightX = RotationValueX + RotationValueWidth + RotationGap;
+constexpr int RotationHeight = 30;
 constexpr std::array ToolCategories = {
     PatternCategory::StillLife,
     PatternCategory::Oscillator,
@@ -177,9 +185,18 @@ void LifeGameApplication::drawToolPanel() const {
     DrawFormatString(PanelContentX, infoY + 74, text, "Speed       %d gen/s", currentSimulationSpeed());
     DrawFormatString(PanelContentX, infoY + 98, text, "Random      %.0f%%", currentRandomAliveProbability() * 100.0);
     DrawFormatString(PanelContentX, infoY + 122, text, "Alive       %llu (%.2f%%)", static_cast<unsigned long long>(aliveCells), alivePercentage);
-    DrawFormatString(PanelContentX, infoY + 146, text, "Pattern     %s", currentPattern().name);
-    DrawFormatString(PanelContentX, infoY + 170, text, "Rotation    R%d", currentPatternRotationDegrees());
-    DrawString(PanelContentX, infoY + 202, paused_ ? "PAUSED" : "RUNNING", paused_ ? GetColor(255, 210, 90) : GetColor(120, 230, 140));
+
+    DrawString(PanelContentX, infoY + 146, "ROTATION", muted);
+    const bool rotationEnabled = selectedPatternIndex_ != 0;
+    const unsigned int rotationButton = rotationEnabled ? section : background;
+    DrawBox(RotationLeftX, RotationY, RotationLeftX + RotationButtonWidth, RotationY + RotationHeight, rotationButton, TRUE);
+    DrawBox(RotationValueX, RotationY, RotationValueX + RotationValueWidth, RotationY + RotationHeight, section, TRUE);
+    DrawBox(RotationRightX, RotationY, RotationRightX + RotationButtonWidth, RotationY + RotationHeight, rotationButton, TRUE);
+    DrawString(RotationLeftX + 16, RotationY + 6, "<", rotationEnabled ? text : muted);
+    DrawFormatString(RotationValueX + 30, RotationY + 6, text, "R%d", currentPatternRotationDegrees());
+    DrawString(RotationRightX + 17, RotationY + 6, ">", rotationEnabled ? text : muted);
+
+    DrawString(PanelContentX, infoY + 204, paused_ ? "PAUSED" : "RUNNING", paused_ ? GetColor(255, 210, 90) : GetColor(120, 230, 140));
     DrawString(PanelContentX, 954, "P/Shift+P: select   Q/E: rotate", muted);
     DrawString(PanelContentX, 978, "Wheel list / Click pattern", muted);
 }
@@ -232,6 +249,21 @@ void LifeGameApplication::handleToolPanel(const InputFrame& input) {
             if (inRect(input.mouseX, input.mouseY, PanelContentX, top, AppConfig::WindowWidth - PanelPadding, top + 24)) { selectPattern(i); return; }
         }
         ++categoryRow;
+    }
+
+    if (selectedPatternIndex_ != 0) {
+        if (inRect(input.mouseX, input.mouseY, RotationLeftX, RotationY, RotationLeftX + RotationButtonWidth, RotationY + RotationHeight)) {
+            rotatePattern(-1);
+            return;
+        }
+        if (inRect(input.mouseX, input.mouseY, RotationValueX, RotationY, RotationValueX + RotationValueWidth, RotationY + RotationHeight)) {
+            patternRotationQuarterTurns_ = 0;
+            return;
+        }
+        if (inRect(input.mouseX, input.mouseY, RotationRightX, RotationY, RotationRightX + RotationButtonWidth, RotationY + RotationHeight)) {
+            rotatePattern(1);
+            return;
+        }
     }
 }
 
