@@ -6,13 +6,13 @@
 #include "LifeRenderer.h"
 #include "PatternLibrary.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
 class LifeGameApplication {
 public:
     LifeGameApplication();
-
     int run();
 
 private:
@@ -24,6 +24,9 @@ private:
     void loadBoard();
     void editBoardWithMouse(const InputFrame& input);
     void handleToolPanel(const InputFrame& input);
+    void scrollPatternList(int wheelDelta) noexcept;
+    int patternScrollOffset() const noexcept;
+    int maxPatternScrollOffset(PatternCategory category) const noexcept;
     void placeSelectedPattern(int boardX, int boardY);
     void selectNextPattern() noexcept;
     void selectPreviousPattern() noexcept;
@@ -47,6 +50,7 @@ private:
     std::size_t randomAliveProbabilityIndex_ = 0;
     std::size_t selectedPatternIndex_ = 0;
     PatternCategory toolCategory_ = PatternCategory::StillLife;
+    std::array<int, 5> patternScrollOffsets_{};
     int patternRotationQuarterTurns_ = 0;
     double simulationAccumulator_ = 0.0;
     double fps_ = 0.0;
