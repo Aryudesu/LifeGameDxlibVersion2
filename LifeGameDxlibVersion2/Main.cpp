@@ -7,7 +7,7 @@
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ChangeWindowMode(TRUE);
     SetGraphMode(
-        AppConfig::ScreenWidth,
+        AppConfig::WindowWidth,
         AppConfig::ScreenHeight,
         AppConfig::ScreenColorDepth);
     SetAlwaysRunFlag(TRUE);

@@ -4,6 +4,7 @@
 #include "InputController.h"
 #include "LifeBoard.h"
 #include "LifeRenderer.h"
+#include "PatternLibrary.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -15,25 +16,20 @@ public:
     int run();
 
 private:
-    enum class PlacementPattern : std::size_t {
-        Cell,
-        Glider,
-        Blinker,
-        LightweightSpaceship,
-        Count
-    };
-
     void update(const InputFrame& input, double elapsedSeconds);
     void draw() const;
+    void drawToolPanel() const;
     void setPaused(bool paused);
     void saveBoard();
     void loadBoard();
     void editBoardWithMouse(const InputFrame& input);
+    void handleToolPanel(const InputFrame& input);
     void placeSelectedPattern(int boardX, int boardY);
     void selectNextPattern() noexcept;
     void selectPreviousPattern() noexcept;
+    void selectPattern(std::size_t index) noexcept;
     void rotatePattern(int direction) noexcept;
-    const char* currentPatternName() const noexcept;
+    const LifePattern& currentPattern() const noexcept;
     int currentPatternRotationDegrees() const noexcept;
     void advanceGeneration();
     void changeSimulationSpeed(int direction);
@@ -49,7 +45,8 @@ private:
     std::uint64_t generation_ = 0;
     std::size_t simulationSpeedIndex_ = 0;
     std::size_t randomAliveProbabilityIndex_ = 0;
-    PlacementPattern selectedPattern_ = PlacementPattern::Cell;
+    std::size_t selectedPatternIndex_ = 0;
+    PatternCategory toolCategory_ = PatternCategory::StillLife;
     int patternRotationQuarterTurns_ = 0;
     double simulationAccumulator_ = 0.0;
     double fps_ = 0.0;

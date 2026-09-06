@@ -7,8 +7,10 @@ namespace AppConfig {
 inline constexpr char WindowTitle[] = "LifeGameDxlibVersion2";
 inline constexpr char PausedWindowTitle[] = "LifeGameDxlibVersion2 - Paused";
 
-inline constexpr int ScreenWidth = 1024;
+inline constexpr int BoardViewWidth = 1024;
 inline constexpr int ScreenHeight = 1024;
+inline constexpr int ToolPanelWidth = 320;
+inline constexpr int WindowWidth = BoardViewWidth + ToolPanelWidth;
 inline constexpr int ScreenColorDepth = 32;
 inline constexpr int TargetFps = 60;
 inline constexpr double FpsSampleSeconds = 0.5;
@@ -30,12 +32,6 @@ inline constexpr std::array<double, 4> RandomAliveProbabilities = {
     0.10, 0.20, 0.30, 0.50
 };
 inline constexpr std::size_t DefaultRandomAliveProbabilityIndex = 1;
-
-inline constexpr int HudX = 8;
-inline constexpr int HudY = 8;
-inline constexpr int HudColorR = 255;
-inline constexpr int HudColorG = 255;
-inline constexpr int HudColorB = 255;
 
 inline constexpr int AliveColorR = 0;
 inline constexpr int AliveColorG = 255;
