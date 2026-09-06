@@ -10,6 +10,9 @@ struct InputFrame {
     bool singleStep = false;
     bool toggleGrid = false;
     bool selectNextPattern = false;
+    bool selectPreviousPattern = false;
+    bool rotatePatternLeft = false;
+    bool rotatePatternRight = false;
     bool zoomIn = false;
     bool zoomOut = false;
     bool speedUp = false;
@@ -42,6 +45,8 @@ private:
     bool spaceWasDown_ = false;
     bool gWasDown_ = false;
     bool pWasDown_ = false;
+    bool qWasDown_ = false;
+    bool eWasDown_ = false;
     bool plusWasDown_ = false;
     bool minusWasDown_ = false;
     bool pageUpWasDown_ = false;
