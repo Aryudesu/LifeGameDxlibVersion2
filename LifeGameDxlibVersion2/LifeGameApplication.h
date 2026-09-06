@@ -25,7 +25,6 @@ private:
     void loadBoard();
     void editBoardWithMouse(const InputFrame& input);
     void handleToolPanel(const InputFrame& input);
-    void setBoundaryMode(BoundaryMode mode) noexcept;
     void placeSelectedPattern(int boardX, int boardY);
     void selectNextPattern() noexcept;
     void selectPreviousPattern() noexcept;
