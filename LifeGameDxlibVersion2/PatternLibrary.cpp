@@ -1,6 +1,10 @@
 #include "PatternLibrary.h"
+#include "RleParser.h"
 
 #include <array>
+#include <cassert>
+#include <string>
+#include <vector>
 
 namespace {
 constexpr std::array<PatternCell, 4> Block = {{{0,0},{1,0},{0,1},{1,1}}};
@@ -36,7 +40,24 @@ constexpr std::array<PatternCell, 13> HeavyweightSpaceship = {{{2,0},{3,0},{0,1}
 constexpr std::array<PatternCell, 5> Glider = {{{1,0},{2,1},{0,2},{1,2},{2,2}}};
 constexpr std::array<PatternCell, 36> GosperGliderGun = {{{24,0},{22,1},{24,1},{12,2},{13,2},{20,2},{21,2},{34,2},{35,2},{11,3},{15,3},{20,3},{21,3},{34,3},{35,3},{0,4},{1,4},{10,4},{16,4},{20,4},{21,4},{0,5},{1,5},{10,5},{14,5},{16,5},{17,5},{22,5},{24,5},{10,6},{16,6},{24,6},{11,7},{15,7},{12,8},{13,8}}};
 
-constexpr std::array<LifePattern, 33> Patterns = {{
+std::vector<PatternCell> parseEmbeddedRle(const char* rle) {
+    ParsedRlePattern parsed;
+    std::string error;
+    const bool ok = RleParser::parse(rle, parsed, error);
+    assert(ok && "Embedded RLE must be valid");
+    return ok ? std::move(parsed.cells) : std::vector<PatternCell>{};
+}
+
+const std::vector<PatternCell> RPentomino = parseEmbeddedRle("x = 3, y = 3, rule = B3/S23\nb2o$2o$bo!");
+const std::vector<PatternCell> Acorn = parseEmbeddedRle("x = 7, y = 3, rule = B3/S23\nbo$3bo$2o2b3o!");
+const std::vector<PatternCell> DieHard = parseEmbeddedRle("x = 8, y = 3, rule = B3/S23\n6bo$2o$bo3b3o!");
+const std::vector<PatternCell> BHeptomino = parseEmbeddedRle("x = 4, y = 3, rule = B3/S23\nob2o$3o$bo!");
+const std::vector<PatternCell> Thunderbird = parseEmbeddedRle("x = 3, y = 5, rule = B3/S23\n3o2$bo$bo$bo!");
+const std::vector<PatternCell> IHeptomino = parseEmbeddedRle("x = 4, y = 4, rule = B3/S23\n2o$bo$b2o$2b2o!");
+const std::vector<PatternCell> Bunnies = parseEmbeddedRle("x = 8, y = 4, rule = B3/S23\no5bo$2bo3bo$2bo2bobo$bobo!");
+const std::vector<PatternCell> Lidka = parseEmbeddedRle("x = 9, y = 15, rule = B3/S23\nbo$obo$bo8$8bo$6bobo$5b2obo2$4b3o!");
+
+const std::array<LifePattern, 41> Patterns = {{
     {"Cell", PatternCategory::Cell, {}},
     {"Block", PatternCategory::StillLife, Block}, {"Beehive", PatternCategory::StillLife, Beehive},
     {"Boat", PatternCategory::StillLife, Boat}, {"Ship", PatternCategory::StillLife, Ship},
@@ -53,6 +74,14 @@ constexpr std::array<LifePattern, 33> Patterns = {{
     {"Hertz Oscillator 1", PatternCategory::Oscillator, HertzOscillatorOne},
     {"Hertz Oscillator 2", PatternCategory::Oscillator, HertzOscillatorTwo},
     {"Pentadecathlon", PatternCategory::Oscillator, Pentadecathlon},
+    {"R-pentomino", PatternCategory::Methuselah, std::span<const PatternCell>{RPentomino}},
+    {"Acorn", PatternCategory::Methuselah, std::span<const PatternCell>{Acorn}},
+    {"Die Hard", PatternCategory::Methuselah, std::span<const PatternCell>{DieHard}},
+    {"B-heptomino", PatternCategory::Methuselah, std::span<const PatternCell>{BHeptomino}},
+    {"Thunderbird", PatternCategory::Methuselah, std::span<const PatternCell>{Thunderbird}},
+    {"I-heptomino", PatternCategory::Methuselah, std::span<const PatternCell>{IHeptomino}},
+    {"Bunnies", PatternCategory::Methuselah, std::span<const PatternCell>{Bunnies}},
+    {"Lidka", PatternCategory::Methuselah, std::span<const PatternCell>{Lidka}},
     {"LWSS", PatternCategory::Spaceship, LightweightSpaceship}, {"MWSS", PatternCategory::Spaceship, MiddleweightSpaceship},
     {"HWSS", PatternCategory::Spaceship, HeavyweightSpaceship}, {"Glider", PatternCategory::Spaceship, Glider},
     {"Gosper Glider Gun", PatternCategory::Gun, GosperGliderGun},
@@ -68,6 +97,7 @@ const char* categoryName(PatternCategory category) noexcept {
     case PatternCategory::Cell: return "Cell";
     case PatternCategory::StillLife: return "Still Life";
     case PatternCategory::Oscillator: return "Oscillator";
+    case PatternCategory::Methuselah: return "Methuselah";
     case PatternCategory::Spaceship: return "Spaceship";
     case PatternCategory::Gun: return "Gun";
     }
