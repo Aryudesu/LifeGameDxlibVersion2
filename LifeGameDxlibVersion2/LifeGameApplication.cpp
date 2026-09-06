@@ -159,9 +159,12 @@ void LifeGameApplication::drawToolPanel() const {
         }
         ++categoryRow;
     }
-    const int maxScroll = patternListScroll_.maxOffset(toolCategory_);
-    if (maxScroll > 0) {
-        DrawFormatString(AppConfig::WindowWidth - 90, PatternListBottom + 4, muted, "%d / %d", scrollOffset + 1, maxScroll + 1);
+    const int patternCount = patternListScroll_.count(toolCategory_);
+    if (patternCount > PatternListScroll::VisibleRows) {
+        const int firstVisible = scrollOffset + 1;
+        const int lastVisible = std::min(scrollOffset + PatternListScroll::VisibleRows, patternCount);
+        DrawFormatString(AppConfig::WindowWidth - 122, PatternListBottom + 4, muted,
+            "%d-%d / %d", firstVisible, lastVisible, patternCount);
     }
 
     const std::uint64_t aliveCells = board_.aliveCellCount();
