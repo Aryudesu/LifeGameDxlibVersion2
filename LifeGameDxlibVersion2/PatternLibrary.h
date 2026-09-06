@@ -12,6 +12,7 @@ enum class PatternCategory {
     Cell,
     StillLife,
     Oscillator,
+    Methuselah,
     Spaceship,
     Gun
 };
