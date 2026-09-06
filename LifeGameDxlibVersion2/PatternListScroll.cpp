@@ -32,6 +32,10 @@ int PatternListScroll::maxOffset(PatternCategory category) const noexcept {
     return std::max(0, patternCount(category) - VisibleRows);
 }
 
+int PatternListScroll::count(PatternCategory category) const noexcept {
+    return patternCount(category);
+}
+
 void PatternListScroll::scroll(PatternCategory category, int wheelDelta) noexcept {
     if (wheelDelta == 0) return;
     int& current = offsets_[categoryIndex(category)];
