@@ -86,6 +86,7 @@
     <ClCompile Include="LifeGameApplication.cpp" />
     <ClCompile Include="LifeRenderer.cpp" />
     <ClCompile Include="PatternLibrary.cpp" />
+    <ClCompile Include="RleParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="LifeGameApplication.h" />
     <ClInclude Include="LifeRenderer.h" />
     <ClInclude Include="PatternLibrary.h" />
+    <ClInclude Include="RleParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
