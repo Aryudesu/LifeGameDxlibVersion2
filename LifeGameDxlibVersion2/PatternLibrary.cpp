@@ -57,7 +57,15 @@ const std::vector<PatternCell> IHeptomino = parseEmbeddedRle("x = 4, y = 4, rule
 const std::vector<PatternCell> Bunnies = parseEmbeddedRle("x = 8, y = 4, rule = B3/S23\no5bo$2bo3bo$2bo2bobo$bobo!");
 const std::vector<PatternCell> Lidka = parseEmbeddedRle("x = 9, y = 15, rule = B3/S23\nbo$obo$bo8$8bo$6bobo$5b2obo2$4b3o!");
 
-const std::array<LifePattern, 41> Patterns = {{
+// Additional well-known patterns. Keeping these in RLE form exercises the shared parser
+// and makes future catalogue expansion much easier than hand-maintaining cell arrays.
+const std::vector<PatternCell> FigureEight = parseEmbeddedRle("x = 6, y = 6, rule = B3/S23\n2o$2obo$4bo$bo$2bob2o$4b2o!");
+const std::vector<PatternCell> KoksGalaxy = parseEmbeddedRle("x = 9, y = 9, rule = B3/S23\n2bo2bobob$2obob3ob$bo6bo$2o5bob2$bo5b2o$o6bob$b3obob2o$bobo2bo!");
+const std::vector<PatternCell> Loafer = parseEmbeddedRle("x = 9, y = 9, rule = B3/S23\nb2o2bob2o$o2bo2b2o$bobo$2bo$8bo$6b3o$5bo$6bo$7b2o!");
+const std::vector<PatternCell> Copperhead = parseEmbeddedRle("x = 8, y = 12, rule = B3/S23\nb2o2b2o$3b2o$3b2o$obo2bobo$o6bo2$o6bo$b2o2b2o$2b4o2$3b2o$3b2o!");
+const std::vector<PatternCell> SimkinGliderGun = parseEmbeddedRle("x = 33, y = 14, rule = B3/S23\n2o5b2o$2o5b2o2$4b2o$4b2o5$22bo3bo$21bo4b2o$20b2o5b2o2b2o$21b2o4bo3b2o$22bo!");
+
+const std::array<LifePattern, 46> Patterns = {{
     {"Cell", PatternCategory::Cell, {}},
     {"Block", PatternCategory::StillLife, Block}, {"Beehive", PatternCategory::StillLife, Beehive},
     {"Boat", PatternCategory::StillLife, Boat}, {"Ship", PatternCategory::StillLife, Ship},
@@ -74,6 +82,8 @@ const std::array<LifePattern, 41> Patterns = {{
     {"Hertz Oscillator 1", PatternCategory::Oscillator, HertzOscillatorOne},
     {"Hertz Oscillator 2", PatternCategory::Oscillator, HertzOscillatorTwo},
     {"Pentadecathlon", PatternCategory::Oscillator, Pentadecathlon},
+    {"Figure Eight", PatternCategory::Oscillator, std::span<const PatternCell>{FigureEight}},
+    {"Kok's Galaxy", PatternCategory::Oscillator, std::span<const PatternCell>{KoksGalaxy}},
     {"R-pentomino", PatternCategory::Methuselah, std::span<const PatternCell>{RPentomino}},
     {"Acorn", PatternCategory::Methuselah, std::span<const PatternCell>{Acorn}},
     {"Die Hard", PatternCategory::Methuselah, std::span<const PatternCell>{DieHard}},
@@ -84,7 +94,10 @@ const std::array<LifePattern, 41> Patterns = {{
     {"Lidka", PatternCategory::Methuselah, std::span<const PatternCell>{Lidka}},
     {"LWSS", PatternCategory::Spaceship, LightweightSpaceship}, {"MWSS", PatternCategory::Spaceship, MiddleweightSpaceship},
     {"HWSS", PatternCategory::Spaceship, HeavyweightSpaceship}, {"Glider", PatternCategory::Spaceship, Glider},
+    {"Loafer", PatternCategory::Spaceship, std::span<const PatternCell>{Loafer}},
+    {"Copperhead", PatternCategory::Spaceship, std::span<const PatternCell>{Copperhead}},
     {"Gosper Glider Gun", PatternCategory::Gun, GosperGliderGun},
+    {"Simkin Glider Gun", PatternCategory::Gun, std::span<const PatternCell>{SimkinGliderGun}},
 }};
 } // namespace
 
