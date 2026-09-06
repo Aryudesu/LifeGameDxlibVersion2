@@ -6,6 +6,7 @@
 #include "LifeFile.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <string>
 #include <thread>
@@ -30,8 +31,15 @@ bool inRect(int x, int y, int left, int top, int right, int bottom) {
 constexpr int PanelX = AppConfig::BoardViewWidth;
 constexpr int PanelPadding = 16;
 constexpr int PanelContentX = PanelX + PanelPadding;
-constexpr int PatternListY = 176;
+constexpr int PatternListY = 198;
 constexpr int PatternRowHeight = 28;
+constexpr std::array ToolCategories = {
+    PatternCategory::StillLife,
+    PatternCategory::Oscillator,
+    PatternCategory::Methuselah,
+    PatternCategory::Spaceship,
+    PatternCategory::Gun,
+};
 }
 
 LifeGameApplication::LifeGameApplication()
@@ -128,11 +136,13 @@ void LifeGameApplication::drawToolPanel() const {
     DrawString(PanelContentX, 14, "LIFE GAME TOOLS", text);
     DrawBox(PanelContentX, 42, AppConfig::WindowWidth - PanelPadding, 72, selectedPatternIndex_ == 0 ? selected : section, TRUE);
     DrawString(PanelContentX + 10, 49, "Cell", text);
-    const PatternCategory categories[] = { PatternCategory::StillLife, PatternCategory::Oscillator, PatternCategory::Spaceship, PatternCategory::Gun };
-    for (int i = 0; i < 4; ++i) {
-        const int column = i % 2, row = i / 2, left = PanelContentX + column * 144, top = 86 + row * 36;
-        DrawBox(left, top, left + 136, top + 28, toolCategory_ == categories[i] ? selected : section, TRUE);
-        DrawString(left + 8, top + 6, PatternLibrary::categoryName(categories[i]), text);
+    for (std::size_t i = 0; i < ToolCategories.size(); ++i) {
+        const int column = static_cast<int>(i % 2);
+        const int row = static_cast<int>(i / 2);
+        const int left = PanelContentX + column * 144;
+        const int top = 86 + row * 36;
+        DrawBox(left, top, left + 136, top + 28, toolCategory_ == ToolCategories[i] ? selected : section, TRUE);
+        DrawString(left + 8, top + 6, PatternLibrary::categoryName(ToolCategories[i]), text);
     }
     int row = 0;
     for (std::size_t i = 1; i < PatternLibrary::size(); ++i) {
@@ -175,14 +185,14 @@ void LifeGameApplication::editBoardWithMouse(const InputFrame& input) {
 void LifeGameApplication::handleToolPanel(const InputFrame& input) {
     if (!input.mouseLeftPressed || input.mouseX < PanelX) return;
     if (inRect(input.mouseX, input.mouseY, PanelContentX, 42, AppConfig::WindowWidth - PanelPadding, 72)) { selectPattern(0); return; }
-    const PatternCategory categories[] = { PatternCategory::StillLife, PatternCategory::Oscillator, PatternCategory::Spaceship, PatternCategory::Gun };
-    for (int i = 0; i < 4; ++i) {
-        const int column = i % 2, row = i / 2, left = PanelContentX + column * 144, top = 86 + row * 36;
+    for (std::size_t i = 0; i < ToolCategories.size(); ++i) {
+        const int column = static_cast<int>(i % 2);
+        const int row = static_cast<int>(i / 2);
+        const int left = PanelContentX + column * 144;
+        const int top = 86 + row * 36;
         if (inRect(input.mouseX, input.mouseY, left, top, left + 136, top + 28)) {
-            // Treat a category like a pull-down choice: selecting it immediately
-            // selects the first pattern in that category as well.
             for (std::size_t patternIndex = 1; patternIndex < PatternLibrary::size(); ++patternIndex) {
-                if (PatternLibrary::at(patternIndex).category == categories[i]) {
+                if (PatternLibrary::at(patternIndex).category == ToolCategories[i]) {
                     selectPattern(patternIndex);
                     return;
                 }
