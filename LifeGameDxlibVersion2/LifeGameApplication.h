@@ -5,6 +5,7 @@
 #include "LifeBoard.h"
 #include "LifeRenderer.h"
 #include "PatternLibrary.h"
+#include "PatternListScroll.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -40,6 +41,7 @@ private:
     LifeRenderer renderer_;
     Camera camera_;
     InputController inputController_;
+    PatternListScroll patternListScroll_;
     bool paused_ = false;
     bool showGrid_ = false;
     std::uint64_t generation_ = 0;
