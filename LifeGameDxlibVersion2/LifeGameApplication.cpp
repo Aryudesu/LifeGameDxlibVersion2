@@ -33,6 +33,7 @@ constexpr int PanelPadding = 16;
 constexpr int PanelContentX = PanelX + PanelPadding;
 constexpr int PatternListY = 198;
 constexpr int PatternRowHeight = 28;
+constexpr int PatternListBottom = PatternListY + PatternListScroll::VisibleRows * PatternRowHeight;
 constexpr std::array ToolCategories = {
     PatternCategory::StillLife,
     PatternCategory::Oscillator,
@@ -144,15 +145,28 @@ void LifeGameApplication::drawToolPanel() const {
         DrawBox(left, top, left + 136, top + 28, toolCategory_ == ToolCategories[i] ? selected : section, TRUE);
         DrawString(left + 8, top + 6, PatternLibrary::categoryName(ToolCategories[i]), text);
     }
-    int row = 0;
+
+    const int scrollOffset = patternListScroll_.offset(toolCategory_);
+    int categoryRow = 0;
     for (std::size_t i = 1; i < PatternLibrary::size(); ++i) {
         const LifePattern& pattern = PatternLibrary::at(i);
         if (pattern.category != toolCategory_) continue;
-        const int top = PatternListY + row * PatternRowHeight;
-        DrawBox(PanelContentX, top, AppConfig::WindowWidth - PanelPadding, top + 24, selectedPatternIndex_ == i ? selected : section, TRUE);
-        DrawString(PanelContentX + 8, top + 5, pattern.name, text);
-        ++row;
+        if (categoryRow >= scrollOffset && categoryRow < scrollOffset + PatternListScroll::VisibleRows) {
+            const int visibleRow = categoryRow - scrollOffset;
+            const int top = PatternListY + visibleRow * PatternRowHeight;
+            DrawBox(PanelContentX, top, AppConfig::WindowWidth - PanelPadding, top + 24, selectedPatternIndex_ == i ? selected : section, TRUE);
+            DrawString(PanelContentX + 8, top + 5, pattern.name, text);
+        }
+        ++categoryRow;
     }
+    const int patternCount = patternListScroll_.count(toolCategory_);
+    if (patternCount > PatternListScroll::VisibleRows) {
+        const int firstVisible = scrollOffset + 1;
+        const int lastVisible = std::min(scrollOffset + PatternListScroll::VisibleRows, patternCount);
+        DrawFormatString(AppConfig::WindowWidth - 122, PatternListBottom + 4, muted,
+            "%d-%d / %d", firstVisible, lastVisible, patternCount);
+    }
+
     const std::uint64_t aliveCells = board_.aliveCellCount();
     const std::uint64_t totalCells = static_cast<std::uint64_t>(board_.width()) * static_cast<std::uint64_t>(board_.height());
     const double alivePercentage = totalCells == 0 ? 0.0 : static_cast<double>(aliveCells) * 100.0 / static_cast<double>(totalCells);
@@ -167,7 +181,7 @@ void LifeGameApplication::drawToolPanel() const {
     DrawFormatString(PanelContentX, infoY + 170, text, "Rotation    R%d", currentPatternRotationDegrees());
     DrawString(PanelContentX, infoY + 202, paused_ ? "PAUSED" : "RUNNING", paused_ ? GetColor(255, 210, 90) : GetColor(120, 230, 140));
     DrawString(PanelContentX, 954, "P/Shift+P: select   Q/E: rotate", muted);
-    DrawString(PanelContentX, 978, "Click a pattern to select it", muted);
+    DrawString(PanelContentX, 978, "Wheel list / Click pattern", muted);
 }
 
 void LifeGameApplication::setPaused(bool paused) { paused_ = paused; simulationAccumulator_ = 0.0; SetMainWindowText(paused_ ? AppConfig::PausedWindowTitle : AppConfig::WindowTitle); }
@@ -183,7 +197,13 @@ void LifeGameApplication::editBoardWithMouse(const InputFrame& input) {
 }
 
 void LifeGameApplication::handleToolPanel(const InputFrame& input) {
-    if (!input.mouseLeftPressed || input.mouseX < PanelX) return;
+    if (input.mouseX < PanelX) return;
+
+    if (inRect(input.mouseX, input.mouseY, PanelContentX, PatternListY, AppConfig::WindowWidth - PanelPadding, PatternListBottom)) {
+        patternListScroll_.scroll(toolCategory_, input.mouseWheel);
+    }
+
+    if (!input.mouseLeftPressed) return;
     if (inRect(input.mouseX, input.mouseY, PanelContentX, 42, AppConfig::WindowWidth - PanelPadding, 72)) { selectPattern(0); return; }
     for (std::size_t i = 0; i < ToolCategories.size(); ++i) {
         const int column = static_cast<int>(i % 2);
@@ -200,20 +220,25 @@ void LifeGameApplication::handleToolPanel(const InputFrame& input) {
             return;
         }
     }
-    int row = 0;
+
+    const int scrollOffset = patternListScroll_.offset(toolCategory_);
+    int categoryRow = 0;
     for (std::size_t i = 1; i < PatternLibrary::size(); ++i) {
         const LifePattern& pattern = PatternLibrary::at(i);
         if (pattern.category != toolCategory_) continue;
-        const int top = PatternListY + row * PatternRowHeight;
-        if (inRect(input.mouseX, input.mouseY, PanelContentX, top, AppConfig::WindowWidth - PanelPadding, top + 24)) { selectPattern(i); return; }
-        ++row;
+        if (categoryRow >= scrollOffset && categoryRow < scrollOffset + PatternListScroll::VisibleRows) {
+            const int visibleRow = categoryRow - scrollOffset;
+            const int top = PatternListY + visibleRow * PatternRowHeight;
+            if (inRect(input.mouseX, input.mouseY, PanelContentX, top, AppConfig::WindowWidth - PanelPadding, top + 24)) { selectPattern(i); return; }
+        }
+        ++categoryRow;
     }
 }
 
 void LifeGameApplication::placeSelectedPattern(int boardX, int boardY) { const LifePattern& pattern = currentPattern(); for (const PatternCell cell : pattern.cells) { const PatternCell rotated = rotateCellClockwise(cell, patternRotationQuarterTurns_); board_.setAlive(boardX + rotated.x, boardY + rotated.y, true); } }
 void LifeGameApplication::selectNextPattern() noexcept { selectPattern((selectedPatternIndex_ + 1) % PatternLibrary::size()); }
 void LifeGameApplication::selectPreviousPattern() noexcept { selectPattern((selectedPatternIndex_ + PatternLibrary::size() - 1) % PatternLibrary::size()); }
-void LifeGameApplication::selectPattern(std::size_t index) noexcept { selectedPatternIndex_ = index % PatternLibrary::size(); patternRotationQuarterTurns_ = 0; const PatternCategory category = currentPattern().category; if (category != PatternCategory::Cell) toolCategory_ = category; }
+void LifeGameApplication::selectPattern(std::size_t index) noexcept { selectedPatternIndex_ = index % PatternLibrary::size(); patternRotationQuarterTurns_ = 0; const PatternCategory category = currentPattern().category; if (category != PatternCategory::Cell) { toolCategory_ = category; patternListScroll_.ensurePatternVisible(selectedPatternIndex_); } }
 void LifeGameApplication::rotatePattern(int direction) noexcept { if (selectedPatternIndex_ == 0 || direction == 0) return; patternRotationQuarterTurns_ = (patternRotationQuarterTurns_ + (direction > 0 ? 1 : 3)) % 4; }
 const LifePattern& LifeGameApplication::currentPattern() const noexcept { return PatternLibrary::at(selectedPatternIndex_); }
 int LifeGameApplication::currentPatternRotationDegrees() const noexcept { return patternRotationQuarterTurns_ * 90; }
