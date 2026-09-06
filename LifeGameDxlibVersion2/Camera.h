@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BoundaryMode.h"
+
 #include <utility>
 
 class Camera {
@@ -9,6 +11,8 @@ public:
     int x() const noexcept { return x_; }
     int y() const noexcept { return y_; }
     int cellSize() const noexcept { return cellSize_; }
+    BoundaryMode boundaryMode() const noexcept { return boundaryMode_; }
+    void setBoundaryMode(BoundaryMode mode) noexcept;
 
     int visibleColumns() const noexcept;
     int visibleRows() const noexcept;
@@ -36,7 +40,10 @@ private:
     int cellSize_;
     int panRemainderX_ = 0;
     int panRemainderY_ = 0;
+    BoundaryMode boundaryMode_ = BoundaryMode::Dead;
 
     static int wrap(int value, int size) noexcept;
+    static int clamp(int value, int minimum, int maximum) noexcept;
+    void normalizePosition() noexcept;
     bool zoomAt(int screenX, int screenY, int newCellSize) noexcept;
 };

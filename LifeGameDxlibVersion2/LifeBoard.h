@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BoundaryMode.h"
+
 #include <cstdint>
 #include <random>
 #include <vector>
@@ -13,6 +15,8 @@ public:
 
     int width() const noexcept { return width_; }
     int height() const noexcept { return height_; }
+    BoundaryMode boundaryMode() const noexcept { return boundaryMode_; }
+    void setBoundaryMode(BoundaryMode mode) noexcept { boundaryMode_ = mode; }
 
     bool isAlive(int x, int y) const noexcept;
     void setAlive(int x, int y, bool alive) noexcept;
@@ -28,7 +32,9 @@ private:
     std::vector<Word> current_;
     std::vector<Word> next_;
     std::mt19937 randomEngine_;
+    BoundaryMode boundaryMode_ = BoundaryMode::Dead;
 
+    bool inBounds(int x, int y) const noexcept;
     int wrapX(int x) const noexcept;
     int wrapY(int y) const noexcept;
     std::size_t wordIndex(int x, int y) const noexcept;
