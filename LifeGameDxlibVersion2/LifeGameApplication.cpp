@@ -25,13 +25,13 @@ constexpr int PanelContentX = PanelX + PanelPadding;
 constexpr int PatternListY = 198;
 constexpr int PatternRowHeight = 28;
 constexpr int PatternListBottom = PatternListY + PatternListScroll::VisibleRows * PatternRowHeight;
-constexpr int BoundaryY = 824;
+constexpr int BoundaryY = 864;
 constexpr int BoundaryButtonWidth = 136;
 constexpr int BoundaryGap = 8;
 constexpr int BoundaryDeadX = PanelContentX;
 constexpr int BoundaryToroidalX = BoundaryDeadX + BoundaryButtonWidth + BoundaryGap;
 constexpr int BoundaryHeight = 28;
-constexpr int RotationY = 890;
+constexpr int RotationY = 920;
 constexpr int RotationButtonWidth = 48;
 constexpr int RotationValueWidth = 104;
 constexpr int RotationGap = 8;
@@ -95,9 +95,9 @@ void LifeGameApplication::drawToolPanel() const {
     DrawBox(BoundaryDeadX, BoundaryY, BoundaryDeadX + BoundaryButtonWidth, BoundaryY + BoundaryHeight, boundary == BoundaryMode::Dead ? selected : section, TRUE); DrawString(BoundaryDeadX + 48, BoundaryY + 5, "Dead", text);
     DrawBox(BoundaryToroidalX, BoundaryY, BoundaryToroidalX + BoundaryButtonWidth, BoundaryY + BoundaryHeight, boundary == BoundaryMode::Toroidal ? selected : section, TRUE); DrawString(BoundaryToroidalX + 31, BoundaryY + 5, "Toroidal", text);
 
-    DrawString(PanelContentX, infoY + 184, "ROTATION", muted); const bool rotationEnabled = selectedPatternIndex_ != 0; const unsigned int rotationButton = rotationEnabled ? section : background;
+    DrawString(PanelContentX, infoY + 202, "ROTATION", muted); const bool rotationEnabled = selectedPatternIndex_ != 0; const unsigned int rotationButton = rotationEnabled ? section : background;
     DrawBox(RotationLeftX, RotationY, RotationLeftX + RotationButtonWidth, RotationY + RotationHeight, rotationButton, TRUE); DrawBox(RotationValueX, RotationY, RotationValueX + RotationValueWidth, RotationY + RotationHeight, section, TRUE); DrawBox(RotationRightX, RotationY, RotationRightX + RotationButtonWidth, RotationY + RotationHeight, rotationButton, TRUE); DrawString(RotationLeftX + 16, RotationY + 6, "<", rotationEnabled ? text : muted); DrawFormatString(RotationValueX + 30, RotationY + 6, text, "R%d", currentPatternRotationDegrees()); DrawString(RotationRightX + 17, RotationY + 6, ">", rotationEnabled ? text : muted);
-    DrawString(PanelContentX, 932, paused_ ? "PAUSED" : "RUNNING", paused_ ? GetColor(255, 210, 90) : GetColor(120, 230, 140)); DrawString(PanelContentX, 954, "P/Shift+P: select   Q/E: rotate", muted); DrawString(PanelContentX, 978, "Wheel list / Click pattern", muted);
+    DrawString(PanelContentX, 958, paused_ ? "PAUSED" : "RUNNING", paused_ ? GetColor(255, 210, 90) : GetColor(120, 230, 140)); DrawString(PanelContentX, 980, "P/Shift+P: select   Q/E: rotate", muted); DrawString(PanelContentX, 1002, "Wheel list / Click pattern", muted);
 }
 
 void LifeGameApplication::setPaused(bool paused) { paused_ = paused; simulationAccumulator_ = 0.0; SetMainWindowText(paused_ ? AppConfig::PausedWindowTitle : AppConfig::WindowTitle); }
@@ -110,8 +110,8 @@ void LifeGameApplication::handleToolPanel(const InputFrame& input) {
     if (inRect(input.mouseX, input.mouseY, PanelContentX, 42, AppConfig::WindowWidth - PanelPadding, 72)) { selectPattern(0); return; }
     for (std::size_t i = 0; i < ToolCategories.size(); ++i) { const int column = static_cast<int>(i % 2), row = static_cast<int>(i / 2), left = PanelContentX + column * 144, top = 86 + row * 36; if (inRect(input.mouseX, input.mouseY, left, top, left + 136, top + 28)) { for (std::size_t patternIndex = 1; patternIndex < PatternLibrary::size(); ++patternIndex) if (PatternLibrary::at(patternIndex).category == ToolCategories[i]) { selectPattern(patternIndex); return; } return; } }
     const int scrollOffset = patternListScroll_.offset(toolCategory_); int categoryRow = 0; for (std::size_t i = 1; i < PatternLibrary::size(); ++i) { const LifePattern& pattern = PatternLibrary::at(i); if (pattern.category != toolCategory_) continue; if (categoryRow >= scrollOffset && categoryRow < scrollOffset + PatternListScroll::VisibleRows) { const int visibleRow = categoryRow - scrollOffset, top = PatternListY + visibleRow * PatternRowHeight; if (inRect(input.mouseX, input.mouseY, PanelContentX, top, AppConfig::WindowWidth - PanelPadding, top + 24)) { selectPattern(i); return; } } ++categoryRow; }
-    if (inRect(input.mouseX, input.mouseY, BoundaryDeadX, BoundaryY, BoundaryDeadX + BoundaryButtonWidth, BoundaryY + BoundaryHeight)) { board_.setBoundaryMode(BoundaryMode::Dead); return; }
-    if (inRect(input.mouseX, input.mouseY, BoundaryToroidalX, BoundaryY, BoundaryToroidalX + BoundaryButtonWidth, BoundaryY + BoundaryHeight)) { board_.setBoundaryMode(BoundaryMode::Toroidal); return; }
+    if (inRect(input.mouseX, input.mouseY, BoundaryDeadX, BoundaryY, BoundaryDeadX + BoundaryButtonWidth, BoundaryY + BoundaryHeight)) { board_.setBoundaryMode(BoundaryMode::Dead); camera_.setBoundaryMode(BoundaryMode::Dead); return; }
+    if (inRect(input.mouseX, input.mouseY, BoundaryToroidalX, BoundaryY, BoundaryToroidalX + BoundaryButtonWidth, BoundaryY + BoundaryHeight)) { board_.setBoundaryMode(BoundaryMode::Toroidal); camera_.setBoundaryMode(BoundaryMode::Toroidal); return; }
     if (selectedPatternIndex_ != 0) { if (inRect(input.mouseX, input.mouseY, RotationLeftX, RotationY, RotationLeftX + RotationButtonWidth, RotationY + RotationHeight)) { rotatePattern(-1); return; } if (inRect(input.mouseX, input.mouseY, RotationValueX, RotationY, RotationValueX + RotationValueWidth, RotationY + RotationHeight)) { patternRotationQuarterTurns_ = 0; return; } if (inRect(input.mouseX, input.mouseY, RotationRightX, RotationY, RotationRightX + RotationButtonWidth, RotationY + RotationHeight)) { rotatePattern(1); return; } }
 }
 
